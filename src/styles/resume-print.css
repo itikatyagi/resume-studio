@@ -1,0 +1,27 @@
+/**
+ * Resume print styles — shared by preview and browser PDF export.
+ * Step 0.7: tune margins, breaks, and typography.
+ */
+
+@page {
+  size: letter;
+  margin: 0.5in;
+}
+
+@media print {
+  body {
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+
+  .resume-page {
+    box-shadow: none !important;
+    margin: 0 !important;
+  }
+
+  .experience-item,
+  .education-item {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+}
