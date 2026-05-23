@@ -1,7 +1,16 @@
 /**
- * Resume print styles — shared by preview and browser PDF export.
- * Step 0.7: tune margins, breaks, and typography.
+ * Resume print styles — shared by preview, editor, and browser PDF export.
  */
+
+.resume-page {
+  width: 8.5in;
+  min-height: 11in;
+  padding: 0.5in;
+  font-family: Georgia, "Times New Roman", Times, serif;
+  font-size: 10.5pt;
+  line-height: 1.4;
+  color: #18181b;
+}
 
 @page {
   size: letter;
@@ -12,15 +21,24 @@
   body {
     print-color-adjust: exact;
     -webkit-print-color-adjust: exact;
+    background: white !important;
+  }
+
+  .no-print {
+    display: none !important;
   }
 
   .resume-page {
     box-shadow: none !important;
     margin: 0 !important;
+    width: 100% !important;
+    min-height: auto !important;
+    padding: 0 !important;
   }
 
   .experience-item,
-  .education-item {
+  .education-item,
+  .project-item {
     break-inside: avoid;
     page-break-inside: avoid;
   }
