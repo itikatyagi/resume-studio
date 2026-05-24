@@ -39,16 +39,26 @@ function scheduleSave(doc: ResumeDocument) {
   if (typeof window === "undefined") return;
   if (saveTimer) clearTimeout(saveTimer);
   saveTimer = setTimeout(() => {
-    try {
-      const toSave = {
-        ...doc,
-        meta: { ...doc.meta, updatedAt: new Date().toISOString() },
-      };
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(toSave));
-    } catch {
-      // Quota exceeded or private mode — ignore
-    }
+    persistDocument(doc);
   }, SAVE_DELAY_MS);
+}
+
+function persistDocument(doc: ResumeDocument) {
+  if (typeof window === "undefined") return;
+  try {
+    const toSave = {
+      ...doc,
+      meta: { ...doc.meta, updatedAt: new Date().toISOString() },
+    };
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(toSave));
+  } catch {
+    // Quota exceeded or private mode — ignore
+  }
+}
+
+function persistDocumentNow(doc: ResumeDocument) {
+  if (saveTimer) clearTimeout(saveTimer);
+  persistDocument(doc);
 }
 
 function loadFromStorage(): ResumeDocument | null {
@@ -243,7 +253,7 @@ export const useResumeStore = create<ResumeStore>()((set, get) => ({
     const { document } = get();
     const title =
       content.profile.fullName.trim() || document.meta.title || "My resume";
-    commit(set, {
+    const doc = {
       ...document,
       content,
       meta: {
@@ -251,7 +261,9 @@ export const useResumeStore = create<ResumeStore>()((set, get) => ({
         title,
         updatedAt: new Date().toISOString(),
       },
-    });
+    };
+    commit(set, doc);
+    persistDocumentNow(doc);
   },
 
   exportDocument: () => JSON.stringify(get().document, null, 2),

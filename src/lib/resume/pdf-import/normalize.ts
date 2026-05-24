@@ -61,16 +61,18 @@ export function normalizeDraftResume(draft: DraftResume): ResumeContent | null {
       current: item.current,
       details: item.details,
     })),
-    skills:
-      draft.skills.length > 0
-        ? [
-            {
-              id: randomUUID(),
-              order: 0,
-              skills: draft.skills,
-            },
-          ]
-        : [],
+    skills: draft.skills
+      .map((group, order) => {
+        const skills = group.skills.map((s) => s.trim()).filter(Boolean);
+        if (skills.length === 0) return null;
+        return {
+          id: randomUUID(),
+          order,
+          groupName: group.groupName?.trim() || undefined,
+          skills,
+        };
+      })
+      .filter((entry): entry is NonNullable<typeof entry> => entry !== null),
     projects: draft.projects.map((item, order) => ({
       id: randomUUID(),
       order,

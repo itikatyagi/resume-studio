@@ -235,19 +235,66 @@ function chunkBlocks(lines: string[]): string[][] {
   return blocks;
 }
 
+function parseSkillLine(line: string): string[] {
+  if (isBulletLine(line)) {
+    return [stripBullet(line)];
+  }
+
+  const parts = line
+    .split(/[,;|•]/)
+    .map((part) => part.trim())
+    .filter(Boolean);
+
+  if (parts.length > 1) {
+    return parts;
+  }
+
+  return line.trim() ? [line.trim()] : [];
+}
+
+function isSkillCategoryHeader(line: string): boolean {
+  const trimmed = line.trim();
+  if (!trimmed || isBulletLine(line)) return false;
+  if (trimmed.length > 45) return false;
+  if (/[,;|•]/.test(trimmed)) return false;
+  if (/\//.test(trimmed)) return false;
+  if (/\([^)]*\)/.test(trimmed)) return false;
+  if (trimmed.split(/\s+/).length > 5) return false;
+  return /^[A-Za-z]/.test(trimmed);
+}
+
+function parseSkillsSection(lines: string[]): DraftResume["skills"] {
+  const groups: DraftResume["skills"] = [];
+  let current: DraftResume["skills"][number] | null = null;
+
+  function ensureGroup(groupName?: string) {
+    if (!current || (groupName && current.groupName !== groupName)) {
+      current = { groupName, skills: [] };
+      groups.push(current);
+    }
+  }
+
+  for (const line of lines) {
+    if (isSkillCategoryHeader(line)) {
+      current = { groupName: line.trim(), skills: [] };
+      groups.push(current);
+      continue;
+    }
+
+    const items = parseSkillLine(line);
+    if (items.length === 0) continue;
+
+    ensureGroup();
+    current!.skills.push(...items);
+  }
+
+  return groups.filter((group) => group.skills.length > 0);
+}
+
 function parseListSection(lines: string[]): string[] {
   const items: string[] = [];
   for (const line of lines) {
-    if (isBulletLine(line)) {
-      items.push(stripBullet(line));
-      continue;
-    }
-    const parts = line.split(/[,;|•]/).map((p) => p.trim()).filter(Boolean);
-    if (parts.length > 1) {
-      items.push(...parts);
-    } else if (line) {
-      items.push(line);
-    }
+    items.push(...parseSkillLine(line));
   }
   return items;
 }
@@ -314,7 +361,7 @@ export function parseResumeText(text: string): DraftResume {
     if (item) projects.push(item);
   }
 
-  const skills = parseListSection(sections.get("skills") ?? []);
+  const skills = parseSkillsSection(sections.get("skills") ?? []);
 
   const certifications = parseListSection(sections.get("certifications") ?? []).map(
     (line) => {

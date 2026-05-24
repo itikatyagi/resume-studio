@@ -21,7 +21,7 @@ export const ResumeDocument = memo(function ResumeDocument({
 
   return (
     <article
-      className={`resume-page mx-auto bg-white text-black shadow-md ${template.pageClassName}`}
+      className={`resume-page mx-auto bg-white text-black shadow-md print:shadow-none ${template.pageClassName}`}
       style={cssVars as CSSProperties}
     >
       <TemplateComponent content={content} layout={layout} />

@@ -28,6 +28,11 @@ export type DraftProject = {
   bullets: string[];
 };
 
+export type DraftSkillGroup = {
+  groupName?: string;
+  skills: string[];
+};
+
 export type DraftResume = {
   profile: {
     fullName: string;
@@ -39,7 +44,7 @@ export type DraftResume = {
   summary?: string;
   experience: DraftExperience[];
   education: DraftEducation[];
-  skills: string[];
+  skills: DraftSkillGroup[];
   projects: DraftProject[];
   certifications: { name: string; issuer?: string; date?: string }[];
   languages: { name: string; level?: string }[];

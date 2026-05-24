@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { getEffectiveLayout } from "@/lib/resume/layout-utils";
+import { openPrintView } from "@/lib/resume/print";
 import { THEME_LIST } from "@/lib/resume/themes";
 import { useResumeStore } from "@/lib/resume/store";
 
@@ -31,7 +32,7 @@ export function EditorToolbar({ onOpenImport }: EditorToolbarProps) {
   const activeTheme = layout.themeId ?? "novo-blue";
 
   function handlePrint() {
-    window.print();
+    openPrintView(document);
   }
 
   function handleExport() {
