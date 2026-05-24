@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { ChevronDown, ChevronRight, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -75,24 +75,32 @@ export function CollapsibleEntry({
 }: {
   title: string;
   subtitle?: string;
+  /** Controlled expanded state */
   open?: boolean;
+  /** Called with the next expanded state when the header is clicked */
   onOpenChange?: (open: boolean) => void;
   defaultOpen?: boolean;
   children: React.ReactNode;
 }) {
   const [internalOpen, setInternalOpen] = useState(defaultOpen);
-  const isOpen = open ?? internalOpen;
+  const isControlled = open !== undefined;
+  const isOpen = isControlled ? open : internalOpen;
 
-  function setOpen(next: boolean) {
-    onOpenChange?.(next);
-    if (open === undefined) setInternalOpen(next);
+  function handleToggle() {
+    const next = !isOpen;
+    if (isControlled) {
+      onOpenChange?.(next);
+    } else {
+      setInternalOpen(next);
+      onOpenChange?.(next);
+    }
   }
 
   return (
     <div className="overflow-hidden rounded-lg border border-zinc-200 bg-zinc-50/50">
       <button
         type="button"
-        onClick={() => setOpen(!isOpen)}
+        onClick={handleToggle}
         className={cn(
           "flex w-full items-start gap-2 px-3 py-2.5 text-left transition-colors",
           "hover:bg-zinc-100/80",
@@ -128,6 +136,15 @@ export function useExpandedEntries(
   options?: { expandNewest?: boolean },
 ) {
   const [openIds, setOpenIds] = useState<Set<string>>(() => new Set());
+  const itemIdKey = itemIds.join("\0");
+
+  useEffect(() => {
+    setOpenIds((prev) => {
+      if (prev.size === 0) return prev;
+      const next = new Set([...prev].filter((id) => itemIds.includes(id)));
+      return next.size === prev.size ? prev : next;
+    });
+  }, [itemIdKey]);
 
   function expand(id: string) {
     setOpenIds((prev) => new Set([...prev, id]));
@@ -135,6 +152,7 @@ export function useExpandedEntries(
 
   function collapse(id: string) {
     setOpenIds((prev) => {
+      if (!prev.has(id)) return prev;
       const next = new Set(prev);
       next.delete(id);
       return next;
@@ -154,10 +172,9 @@ export function useExpandedEntries(
     setOpenIds(new Set([id]));
   }
 
-  function isOpen(id: string) {
-    if (openIds.has(id)) return true;
-    if (openIds.size === 0 && itemIds.length === 1) return true;
-    return false;
+  /** True only when this id is explicitly in the expanded set. */
+  function isExpanded(id: string) {
+    return openIds.has(id);
   }
 
   function onAddExpand(newId: string) {
@@ -168,5 +185,15 @@ export function useExpandedEntries(
     }
   }
 
-  return { isOpen, toggle, expand, collapse, expandOnly, onAddExpand, setOpenIds };
+  return {
+    isExpanded,
+    /** @deprecated use isExpanded */
+    isOpen: isExpanded,
+    toggle,
+    expand,
+    collapse,
+    expandOnly,
+    onAddExpand,
+    setOpenIds,
+  };
 }

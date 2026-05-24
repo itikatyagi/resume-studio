@@ -207,7 +207,7 @@ function ExperienceEditor() {
   const experience = useResumeStore((s) => s.document.content.experience);
   const updateExperience = useResumeStore((s) => s.updateExperience);
   const entryIds = experience.map((item) => item.id);
-  const { isOpen, expand, collapse, onAddExpand } = useExpandedEntries(entryIds, {
+  const { isExpanded, toggle, onAddExpand } = useExpandedEntries(entryIds, {
     expandNewest: true,
   });
 
@@ -253,10 +253,8 @@ function ExperienceEditor() {
           key={item.id}
           title={experienceEntryTitle(item)}
           subtitle={experienceEntrySubtitle(item)}
-          open={isOpen(item.id)}
-          onOpenChange={(open) =>
-            open ? expand(item.id) : collapse(item.id)
-          }
+          open={isExpanded(item.id)}
+          onOpenChange={() => toggle(item.id)}
         >
           <div className="grid gap-3 sm:grid-cols-2">
             <FieldRow label="Job title">
@@ -334,7 +332,7 @@ function EducationEditor() {
   const education = useResumeStore((s) => s.document.content.education);
   const updateEducation = useResumeStore((s) => s.updateEducation);
   const entryIds = education.map((item) => item.id);
-  const { isOpen, expand, collapse, onAddExpand } = useExpandedEntries(entryIds, {
+  const { isExpanded, toggle, onAddExpand } = useExpandedEntries(entryIds, {
     expandNewest: true,
   });
 
@@ -375,10 +373,8 @@ function EducationEditor() {
           key={item.id}
           title={item.institution.trim() || item.degree.trim() || "New school"}
           subtitle={[item.degree, item.field].filter(Boolean).join(" in ") || undefined}
-          open={isOpen(item.id)}
-          onOpenChange={(open) =>
-            open ? expand(item.id) : collapse(item.id)
-          }
+          open={isExpanded(item.id)}
+          onOpenChange={() => toggle(item.id)}
         >
           <FieldRow label="Institution">
             <Input
@@ -438,7 +434,7 @@ function SkillsEditor() {
   const skills = useResumeStore((s) => s.document.content.skills);
   const updateSkills = useResumeStore((s) => s.updateSkills);
   const entryIds = skills.map((item) => item.id);
-  const { isOpen, expand, collapse, onAddExpand } = useExpandedEntries(entryIds, {
+  const { isExpanded, toggle, onAddExpand } = useExpandedEntries(entryIds, {
     expandNewest: true,
   });
 
@@ -475,10 +471,8 @@ function SkillsEditor() {
               ? `${item.skills.length} skill${item.skills.length === 1 ? "" : "s"}`
               : undefined
           }
-          open={isOpen(item.id)}
-          onOpenChange={(open) =>
-            open ? expand(item.id) : collapse(item.id)
-          }
+          open={isExpanded(item.id)}
+          onOpenChange={() => toggle(item.id)}
         >
           <FieldRow label="Group name (optional)">
             <Input
@@ -508,7 +502,7 @@ function ProjectsEditor() {
   const projects = useResumeStore((s) => s.document.content.projects);
   const updateProjects = useResumeStore((s) => s.updateProjects);
   const entryIds = projects.map((item) => item.id);
-  const { isOpen, expand, collapse, onAddExpand } = useExpandedEntries(entryIds, {
+  const { isExpanded, toggle, onAddExpand } = useExpandedEntries(entryIds, {
     expandNewest: true,
   });
 
@@ -542,10 +536,8 @@ function ProjectsEditor() {
           key={item.id}
           title={item.name.trim() || "New project"}
           subtitle={item.description?.trim() || undefined}
-          open={isOpen(item.id)}
-          onOpenChange={(open) =>
-            open ? expand(item.id) : collapse(item.id)
-          }
+          open={isExpanded(item.id)}
+          onOpenChange={() => toggle(item.id)}
         >
           <div className="grid gap-3 sm:grid-cols-2">
             <FieldRow label="Project name">
@@ -632,7 +624,7 @@ function CertificationsEditor() {
   );
   const updateCertifications = useResumeStore((s) => s.updateCertifications);
   const entryIds = certifications.map((item) => item.id);
-  const { isOpen, expand, collapse, onAddExpand } = useExpandedEntries(entryIds, {
+  const { isExpanded, toggle, onAddExpand } = useExpandedEntries(entryIds, {
     expandNewest: true,
   });
 
@@ -668,10 +660,8 @@ function CertificationsEditor() {
           key={item.id}
           title={item.name.trim() || "New certification"}
           subtitle={item.issuer?.trim() || undefined}
-          open={isOpen(item.id)}
-          onOpenChange={(open) =>
-            open ? expand(item.id) : collapse(item.id)
-          }
+          open={isExpanded(item.id)}
+          onOpenChange={() => toggle(item.id)}
         >
           <FieldRow label="Certification name">
             <Input
@@ -711,7 +701,7 @@ function LanguagesEditor() {
   const languages = useResumeStore((s) => s.document.content.languages);
   const updateLanguages = useResumeStore((s) => s.updateLanguages);
   const entryIds = languages.map((item) => item.id);
-  const { isOpen, expand, collapse, onAddExpand } = useExpandedEntries(entryIds, {
+  const { isExpanded, toggle, onAddExpand } = useExpandedEntries(entryIds, {
     expandNewest: true,
   });
 
@@ -744,10 +734,8 @@ function LanguagesEditor() {
           key={item.id}
           title={item.language.trim() || "New language"}
           subtitle={item.proficiency?.trim() || undefined}
-          open={isOpen(item.id)}
-          onOpenChange={(open) =>
-            open ? expand(item.id) : collapse(item.id)
-          }
+          open={isExpanded(item.id)}
+          onOpenChange={() => toggle(item.id)}
         >
           <div className="grid gap-3 sm:grid-cols-2">
           <FieldRow label="Language">
@@ -781,7 +769,7 @@ function CustomSectionsEditor() {
   const customSections = useResumeStore((s) => s.document.content.customSections);
   const updateCustomSections = useResumeStore((s) => s.updateCustomSections);
   const entryIds = customSections.map((item) => item.id);
-  const { isOpen, expand, collapse, onAddExpand } = useExpandedEntries(entryIds, {
+  const { isExpanded, toggle, onAddExpand } = useExpandedEntries(entryIds, {
     expandNewest: true,
   });
 
@@ -815,10 +803,8 @@ function CustomSectionsEditor() {
         <CollapsibleEntry
           key={item.id}
           title={item.title.trim() || "Custom section"}
-          open={isOpen(item.id)}
-          onOpenChange={(open) =>
-            open ? expand(item.id) : collapse(item.id)
-          }
+          open={isExpanded(item.id)}
+          onOpenChange={() => toggle(item.id)}
         >
           <FieldRow label="Section title">
             <Input
