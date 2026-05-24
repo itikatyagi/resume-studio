@@ -50,7 +50,7 @@ export function UniversalLayout({ content, layout }: ResumeTemplateProps) {
 
   return (
     <div
-      className="config-layout universal-layout flex min-h-full flex-col"
+      className="config-layout universal-layout flex min-h-full flex-1 flex-col"
       style={bodyStyle}
     >
       {showHeader && (
@@ -60,19 +60,31 @@ export function UniversalLayout({ content, layout }: ResumeTemplateProps) {
           style={styles.profileStyle}
         />
       )}
-      <div className="config-body flex flex-1">
+      <div
+        className="config-body flex-1"
+        style={{
+          display: "grid",
+          gridTemplateColumns: `${layout.sidebarWidthPercent}% 1fr`,
+          gridTemplateRows: "1fr",
+          alignItems: "stretch",
+        }}
+      >
         <aside
-          className="config-sidebar shrink-0 px-6 py-6"
+          className="config-sidebar px-6 py-6"
           style={{
-            width: `${layout.sidebarWidthPercent}%`,
             backgroundColor: layout.colors.sidebarBg,
             color: layout.colors.sidebarText,
+            minHeight: "100%",
           }}
         >
-          <SectionBlocks content={content} layout={layout} variant="sidebar" />
+          <SectionBlocks
+            content={content}
+            layout={layout}
+            variant="sidebar"
+          />
         </aside>
         <main
-          className="config-main flex-1 px-7 py-6"
+          className="config-main px-7 py-6"
           style={{ color: layout.colors.mainText }}
         >
           <SectionBlocks content={content} layout={layout} variant="main" />

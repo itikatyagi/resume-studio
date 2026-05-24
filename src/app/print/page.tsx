@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { ResumeDocument as ResumeDocumentView } from "@/components/resume-template";
+import { downloadResumePdf, findResumePageElement } from "@/lib/resume/download-pdf";
 import { migrateResume } from "@/lib/resume/migrations";
 import {
   clearPrintDocument,
@@ -28,39 +29,42 @@ function loadDocument(): ResumeDocument | null {
 
 export default function PrintPage() {
   const [resume, setResume] = useState<ResumeDocument | null>(null);
-  const [ready, setReady] = useState(false);
+  const [status, setStatus] = useState("Preparing PDF…");
 
   useEffect(() => {
-    const doc = loadDocument();
-    setResume(doc);
-
-    const name = doc?.content.profile.fullName?.trim();
-    window.document.title = name || "Resume";
+    setResume(loadDocument());
   }, []);
 
   useEffect(() => {
     if (!resume) return;
 
-    const timer = window.setTimeout(() => {
-      setReady(true);
-      window.print();
-    }, 400);
+    const name = resume.content.profile.fullName?.trim() || "resume";
+
+    const timer = window.setTimeout(async () => {
+      const page = findResumePageElement(window.document);
+      if (!page) {
+        setStatus("Could not render resume for export.");
+        return;
+      }
+
+      try {
+        await downloadResumePdf(page, name);
+        setStatus("PDF downloaded.");
+        clearPrintDocument();
+      } catch {
+        setStatus("PDF export failed. Try again from the editor.");
+      }
+    }, 500);
 
     return () => window.clearTimeout(timer);
   }, [resume]);
 
-  useEffect(() => {
-    const onAfterPrint = () => clearPrintDocument();
-    window.addEventListener("afterprint", onAfterPrint);
-    return () => window.removeEventListener("afterprint", onAfterPrint);
-  }, []);
-
   if (!resume) {
     return (
-      <div className="no-print flex min-h-screen items-center justify-center p-8 text-center text-sm text-zinc-600">
+      <div className="flex min-h-screen items-center justify-center p-8 text-center text-sm text-zinc-600">
         <p>
-          No resume to print. Open the editor, add your content, then use{" "}
-          <strong>Save PDF</strong> again.
+          No resume to export. Open the editor, add your content, then use{" "}
+          <strong>Save PDF</strong>.
         </p>
       </div>
     );
@@ -68,14 +72,8 @@ export default function PrintPage() {
 
   return (
     <div className="print-root">
-      {!ready && (
-        <p className="no-print fixed inset-x-0 top-4 text-center text-sm text-zinc-500">
-          Preparing print…
-        </p>
-      )}
-      <p className="no-print fixed inset-x-0 bottom-4 px-6 text-center text-xs text-zinc-400">
-        In the print dialog, turn off <strong>Headers and footers</strong> for a
-        clean PDF with only your resume.
+      <p className="no-print fixed inset-x-0 top-4 text-center text-sm text-zinc-500">
+        {status}
       </p>
       <ResumeDocumentView document={resume} />
     </div>

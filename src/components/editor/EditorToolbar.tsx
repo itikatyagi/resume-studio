@@ -1,17 +1,22 @@
 "use client";
 
 import Link from "next/link";
+import { useState } from "react";
 import {
   Download,
   FileUp,
+  Loader2,
   Palette,
   Printer,
   RotateCcw,
   Sparkles,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import {
+  downloadResumePdf,
+  findResumePageElement,
+} from "@/lib/resume/download-pdf";
 import { getEffectiveLayout } from "@/lib/resume/layout-utils";
-import { openPrintView } from "@/lib/resume/print";
 import { THEME_LIST } from "@/lib/resume/themes";
 import { useResumeStore } from "@/lib/resume/store";
 
@@ -27,12 +32,25 @@ export function EditorToolbar({ onOpenImport }: EditorToolbarProps) {
   const document = useResumeStore((s) => s.document);
   const applyTheme = useResumeStore((s) => s.applyTheme);
   const updateMetaTitle = useResumeStore((s) => s.updateMetaTitle);
+  const [pdfLoading, setPdfLoading] = useState(false);
 
   const layout = getEffectiveLayout(document);
   const activeTheme = layout.themeId ?? "novo-blue";
 
-  function handlePrint() {
-    openPrintView(document);
+  async function handleSavePdf() {
+    const page = findResumePageElement(window.document);
+    if (!page) return;
+
+    setPdfLoading(true);
+    try {
+      const filename =
+        document.content.profile.fullName.trim() ||
+        title.trim() ||
+        "resume";
+      await downloadResumePdf(page, filename);
+    } finally {
+      setPdfLoading(false);
+    }
   }
 
   function handleExport() {
@@ -91,9 +109,13 @@ export function EditorToolbar({ onOpenImport }: EditorToolbarProps) {
           <Download className="size-4" />
           Export
         </Button>
-        <Button size="sm" onClick={handlePrint}>
-          <Printer className="size-4" />
-          Save PDF
+        <Button size="sm" onClick={handleSavePdf} disabled={pdfLoading}>
+          {pdfLoading ? (
+            <Loader2 className="size-4 animate-spin" />
+          ) : (
+            <Printer className="size-4" />
+          )}
+          {pdfLoading ? "Saving…" : "Save PDF"}
         </Button>
       </div>
     </header>

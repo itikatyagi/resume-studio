@@ -13,10 +13,27 @@
 
 .resume-page-universal {
   padding: 0;
+  display: flex;
+  flex-direction: column;
 }
 
 .resume-page-universal .universal-layout {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
   min-height: 11in;
+}
+
+.resume-page-universal .config-body {
+  flex: 1 1 auto;
+  display: grid;
+  align-items: stretch;
+  min-height: 0;
+}
+
+.resume-page-universal .config-sidebar {
+  min-height: 100%;
+  height: 100%;
 }
 
 .resume-page-universal .config-header,
@@ -29,6 +46,26 @@
 .resume-page-novo15,
 .resume-page-classic {
   padding: 0;
+}
+
+.pdf-export,
+.pdf-export * {
+  box-shadow: none !important;
+}
+
+.pdf-export {
+  margin: 0 !important;
+  width: 8.5in !important;
+  overflow: visible !important;
+}
+
+.pdf-export .config-body {
+  flex: 1 1 auto !important;
+}
+
+.pdf-export .config-sidebar {
+  min-height: 100% !important;
+  height: 100% !important;
 }
 
 @page {
@@ -90,6 +127,7 @@
   }
 
   .resume-page-universal .config-body {
+    display: grid;
     align-items: stretch;
   }
 
