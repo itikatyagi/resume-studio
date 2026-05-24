@@ -17,33 +17,21 @@ import type {
   SkillEntry,
 } from "@/lib/resume/schema";
 import { createId, nextOrder, useResumeStore } from "@/lib/resume/store";
+import {
+  CollapsibleEntry,
+  CollapsibleSectionCard,
+  useExpandedEntries,
+} from "./EditorCollapsible";
 import { SkillsTagInput } from "./SkillsTagInput";
 
-function SectionCard({
-  title,
-  children,
-  onAdd,
-  addLabel,
-}: {
-  title: string;
-  children: React.ReactNode;
-  onAdd?: () => void;
-  addLabel?: string;
-}) {
-  return (
-    <Card>
-      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
-        <CardTitle className="text-base">{title}</CardTitle>
-        {onAdd && (
-          <Button variant="outline" size="sm" onClick={onAdd}>
-            <Plus className="size-4" />
-            {addLabel ?? "Add"}
-          </Button>
-        )}
-      </CardHeader>
-      <CardContent className="space-y-4">{children}</CardContent>
-    </Card>
-  );
+function experienceEntryTitle(item: ExperienceItem): string {
+  return item.title.trim() || "New role";
+}
+
+function experienceEntrySubtitle(item: ExperienceItem): string | undefined {
+  const parts = [item.company, item.projectName?.trim()]
+    .filter((p) => p && p.length > 0);
+  return parts.length > 0 ? parts.join(" · ") : undefined;
 }
 
 function FieldRow({
@@ -127,7 +115,7 @@ function ProfileEditor() {
   }
 
   return (
-    <SectionCard title="Profile">
+    <CollapsibleSectionCard title="Profile">
       <FieldRow label="Full name">
         <Input
           value={profile.fullName}
@@ -211,13 +199,17 @@ function ProfileEditor() {
           </div>
         ))}
       </div>
-    </SectionCard>
+    </CollapsibleSectionCard>
   );
 }
 
 function ExperienceEditor() {
   const experience = useResumeStore((s) => s.document.content.experience);
   const updateExperience = useResumeStore((s) => s.updateExperience);
+  const entryIds = experience.map((item) => item.id);
+  const { isOpen, expand, collapse, onAddExpand } = useExpandedEntries(entryIds, {
+    expandNewest: true,
+  });
 
   function updateItem(index: number, patch: Partial<ExperienceItem>) {
     updateExperience(
@@ -235,22 +227,37 @@ function ExperienceEditor() {
       order: nextOrder(experience),
       company: "",
       title: "",
+      projectName: "",
       location: "",
       startDate: "",
       endDate: "",
       current: false,
       bullets: [""],
     };
+    onAddExpand(item.id);
     updateExperience([...experience, item]);
   }
 
   return (
-    <SectionCard title="Experience" onAdd={addItem} addLabel="Add job">
+    <CollapsibleSectionCard
+      title="Experience"
+      count={experience.length}
+      onAdd={addItem}
+      addLabel="Add job"
+    >
       {experience.length === 0 && (
         <p className="text-sm text-zinc-500">No experience entries yet.</p>
       )}
       {experience.map((item, index) => (
-        <div key={item.id} className="space-y-3 rounded-lg border border-zinc-200 p-4">
+        <CollapsibleEntry
+          key={item.id}
+          title={experienceEntryTitle(item)}
+          subtitle={experienceEntrySubtitle(item)}
+          open={isOpen(item.id)}
+          onOpenChange={(open) =>
+            open ? expand(item.id) : collapse(item.id)
+          }
+        >
           <div className="grid gap-3 sm:grid-cols-2">
             <FieldRow label="Job title">
               <Input
@@ -265,6 +272,15 @@ function ExperienceEditor() {
               />
             </FieldRow>
           </div>
+          <FieldRow label="Project name (optional)">
+            <Input
+              value={item.projectName ?? ""}
+              onChange={(e) =>
+                updateItem(index, { projectName: e.target.value })
+              }
+              placeholder="e.g. Payment platform migration"
+            />
+          </FieldRow>
           <FieldRow label="Location">
             <Input
               value={item.location ?? ""}
@@ -308,15 +324,19 @@ function ExperienceEditor() {
             onChange={(bullets) => updateItem(index, { bullets })}
           />
           <ItemActions onRemove={() => removeItem(index)} />
-        </div>
+        </CollapsibleEntry>
       ))}
-    </SectionCard>
+    </CollapsibleSectionCard>
   );
 }
 
 function EducationEditor() {
   const education = useResumeStore((s) => s.document.content.education);
   const updateEducation = useResumeStore((s) => s.updateEducation);
+  const entryIds = education.map((item) => item.id);
+  const { isOpen, expand, collapse, onAddExpand } = useExpandedEntries(entryIds, {
+    expandNewest: true,
+  });
 
   function updateItem(index: number, patch: Partial<EducationItem>) {
     updateEducation(
@@ -336,16 +356,30 @@ function EducationEditor() {
       current: false,
       details: "",
     };
+    onAddExpand(item.id);
     updateEducation([...education, item]);
   }
 
   return (
-    <SectionCard title="Education" onAdd={addItem} addLabel="Add school">
+    <CollapsibleSectionCard
+      title="Education"
+      count={education.length}
+      onAdd={addItem}
+      addLabel="Add school"
+    >
       {education.length === 0 && (
         <p className="text-sm text-zinc-500">No education entries yet.</p>
       )}
       {education.map((item, index) => (
-        <div key={item.id} className="space-y-3 rounded-lg border border-zinc-200 p-4">
+        <CollapsibleEntry
+          key={item.id}
+          title={item.institution.trim() || item.degree.trim() || "New school"}
+          subtitle={[item.degree, item.field].filter(Boolean).join(" in ") || undefined}
+          open={isOpen(item.id)}
+          onOpenChange={(open) =>
+            open ? expand(item.id) : collapse(item.id)
+          }
+        >
           <FieldRow label="Institution">
             <Input
               value={item.institution}
@@ -394,15 +428,19 @@ function EducationEditor() {
               updateEducation(education.filter((_, i) => i !== index))
             }
           />
-        </div>
+        </CollapsibleEntry>
       ))}
-    </SectionCard>
+    </CollapsibleSectionCard>
   );
 }
 
 function SkillsEditor() {
   const skills = useResumeStore((s) => s.document.content.skills);
   const updateSkills = useResumeStore((s) => s.updateSkills);
+  const entryIds = skills.map((item) => item.id);
+  const { isOpen, expand, collapse, onAddExpand } = useExpandedEntries(entryIds, {
+    expandNewest: true,
+  });
 
   function updateItem(index: number, patch: Partial<SkillEntry>) {
     updateSkills(
@@ -417,13 +455,31 @@ function SkillsEditor() {
       groupName: "",
       skills: [],
     };
+    onAddExpand(item.id);
     updateSkills([...skills, item]);
   }
 
   return (
-    <SectionCard title="Skills" onAdd={addGroup} addLabel="Add group">
+    <CollapsibleSectionCard
+      title="Skills"
+      count={skills.length}
+      onAdd={addGroup}
+      addLabel="Add group"
+    >
       {skills.map((item, index) => (
-        <div key={item.id} className="space-y-3 rounded-lg border border-zinc-200 p-4">
+        <CollapsibleEntry
+          key={item.id}
+          title={item.groupName?.trim() || "Skill group"}
+          subtitle={
+            item.skills.length > 0
+              ? `${item.skills.length} skill${item.skills.length === 1 ? "" : "s"}`
+              : undefined
+          }
+          open={isOpen(item.id)}
+          onOpenChange={(open) =>
+            open ? expand(item.id) : collapse(item.id)
+          }
+        >
           <FieldRow label="Group name (optional)">
             <Input
               value={item.groupName ?? ""}
@@ -442,15 +498,19 @@ function SkillsEditor() {
               updateSkills(skills.filter((_, i) => i !== index))
             }
           />
-        </div>
+        </CollapsibleEntry>
       ))}
-    </SectionCard>
+    </CollapsibleSectionCard>
   );
 }
 
 function ProjectsEditor() {
   const projects = useResumeStore((s) => s.document.content.projects);
   const updateProjects = useResumeStore((s) => s.updateProjects);
+  const entryIds = projects.map((item) => item.id);
+  const { isOpen, expand, collapse, onAddExpand } = useExpandedEntries(entryIds, {
+    expandNewest: true,
+  });
 
   function updateItem(index: number, patch: Partial<ProjectItem>) {
     updateProjects(
@@ -466,13 +526,27 @@ function ProjectsEditor() {
       description: "",
       bullets: [],
     };
+    onAddExpand(item.id);
     updateProjects([...projects, item]);
   }
 
   return (
-    <SectionCard title="Projects" onAdd={addItem} addLabel="Add project">
+    <CollapsibleSectionCard
+      title="Projects"
+      count={projects.length}
+      onAdd={addItem}
+      addLabel="Add project"
+    >
       {projects.map((item, index) => (
-        <div key={item.id} className="space-y-3 rounded-lg border border-zinc-200 p-4">
+        <CollapsibleEntry
+          key={item.id}
+          title={item.name.trim() || "New project"}
+          subtitle={item.description?.trim() || undefined}
+          open={isOpen(item.id)}
+          onOpenChange={(open) =>
+            open ? expand(item.id) : collapse(item.id)
+          }
+        >
           <div className="grid gap-3 sm:grid-cols-2">
             <FieldRow label="Project name">
               <Input
@@ -546,9 +620,9 @@ function ProjectsEditor() {
               updateProjects(projects.filter((_, i) => i !== index))
             }
           />
-        </div>
+        </CollapsibleEntry>
       ))}
-    </SectionCard>
+    </CollapsibleSectionCard>
   );
 }
 
@@ -557,6 +631,10 @@ function CertificationsEditor() {
     (s) => s.document.content.certifications,
   );
   const updateCertifications = useResumeStore((s) => s.updateCertifications);
+  const entryIds = certifications.map((item) => item.id);
+  const { isOpen, expand, collapse, onAddExpand } = useExpandedEntries(entryIds, {
+    expandNewest: true,
+  });
 
   function updateItem(index: number, patch: Partial<CertificationItem>) {
     updateCertifications(
@@ -574,13 +652,27 @@ function CertificationsEditor() {
       issuer: "",
       date: "",
     };
+    onAddExpand(item.id);
     updateCertifications([...certifications, item]);
   }
 
   return (
-    <SectionCard title="Certifications" onAdd={addItem} addLabel="Add">
+    <CollapsibleSectionCard
+      title="Certifications"
+      count={certifications.length}
+      onAdd={addItem}
+      addLabel="Add"
+    >
       {certifications.map((item, index) => (
-        <div key={item.id} className="space-y-3 rounded-lg border border-zinc-200 p-4">
+        <CollapsibleEntry
+          key={item.id}
+          title={item.name.trim() || "New certification"}
+          subtitle={item.issuer?.trim() || undefined}
+          open={isOpen(item.id)}
+          onOpenChange={(open) =>
+            open ? expand(item.id) : collapse(item.id)
+          }
+        >
           <FieldRow label="Certification name">
             <Input
               value={item.name}
@@ -609,15 +701,19 @@ function CertificationsEditor() {
               )
             }
           />
-        </div>
+        </CollapsibleEntry>
       ))}
-    </SectionCard>
+    </CollapsibleSectionCard>
   );
 }
 
 function LanguagesEditor() {
   const languages = useResumeStore((s) => s.document.content.languages);
   const updateLanguages = useResumeStore((s) => s.updateLanguages);
+  const entryIds = languages.map((item) => item.id);
+  const { isOpen, expand, collapse, onAddExpand } = useExpandedEntries(entryIds, {
+    expandNewest: true,
+  });
 
   function updateItem(index: number, patch: Partial<LanguageItem>) {
     updateLanguages(
@@ -632,13 +728,28 @@ function LanguagesEditor() {
       language: "",
       proficiency: "",
     };
+    onAddExpand(item.id);
     updateLanguages([...languages, item]);
   }
 
   return (
-    <SectionCard title="Languages" onAdd={addItem} addLabel="Add">
+    <CollapsibleSectionCard
+      title="Languages"
+      count={languages.length}
+      onAdd={addItem}
+      addLabel="Add"
+    >
       {languages.map((item, index) => (
-        <div key={item.id} className="grid gap-3 sm:grid-cols-2">
+        <CollapsibleEntry
+          key={item.id}
+          title={item.language.trim() || "New language"}
+          subtitle={item.proficiency?.trim() || undefined}
+          open={isOpen(item.id)}
+          onOpenChange={(open) =>
+            open ? expand(item.id) : collapse(item.id)
+          }
+        >
+          <div className="grid gap-3 sm:grid-cols-2">
           <FieldRow label="Language">
             <Input
               value={item.language}
@@ -659,15 +770,20 @@ function LanguagesEditor() {
               }
             />
           </div>
-        </div>
+          </div>
+        </CollapsibleEntry>
       ))}
-    </SectionCard>
+    </CollapsibleSectionCard>
   );
 }
 
 function CustomSectionsEditor() {
   const customSections = useResumeStore((s) => s.document.content.customSections);
   const updateCustomSections = useResumeStore((s) => s.updateCustomSections);
+  const entryIds = customSections.map((item) => item.id);
+  const { isOpen, expand, collapse, onAddExpand } = useExpandedEntries(entryIds, {
+    expandNewest: true,
+  });
 
   function updateItem(index: number, patch: Partial<CustomSection>) {
     updateCustomSections(
@@ -684,13 +800,26 @@ function CustomSectionsEditor() {
       title: "Custom Section",
       content: "",
     };
+    onAddExpand(item.id);
     updateCustomSections([...customSections, item]);
   }
 
   return (
-    <SectionCard title="Custom sections" onAdd={addItem} addLabel="Add">
+    <CollapsibleSectionCard
+      title="Custom sections"
+      count={customSections.length}
+      onAdd={addItem}
+      addLabel="Add"
+    >
       {customSections.map((item, index) => (
-        <div key={item.id} className="space-y-3 rounded-lg border border-zinc-200 p-4">
+        <CollapsibleEntry
+          key={item.id}
+          title={item.title.trim() || "Custom section"}
+          open={isOpen(item.id)}
+          onOpenChange={(open) =>
+            open ? expand(item.id) : collapse(item.id)
+          }
+        >
           <FieldRow label="Section title">
             <Input
               value={item.title}
@@ -711,9 +840,9 @@ function CustomSectionsEditor() {
               )
             }
           />
-        </div>
+        </CollapsibleEntry>
       ))}
-    </SectionCard>
+    </CollapsibleSectionCard>
   );
 }
 
@@ -722,19 +851,14 @@ function SummaryEditor() {
   const updateSummary = useResumeStore((s) => s.updateSummary);
 
   return (
-    <Card>
-      <CardHeader className="pb-3">
-        <CardTitle className="text-base">Summary</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <Textarea
-          value={summary ?? ""}
-          onChange={(e) => updateSummary(e.target.value)}
-          rows={4}
-          placeholder="Brief professional summary…"
-        />
-      </CardContent>
-    </Card>
+    <CollapsibleSectionCard title="Summary">
+      <Textarea
+        value={summary ?? ""}
+        onChange={(e) => updateSummary(e.target.value)}
+        rows={4}
+        placeholder="Brief professional summary…"
+      />
+    </CollapsibleSectionCard>
   );
 }
 

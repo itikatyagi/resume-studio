@@ -90,6 +90,7 @@ export function createSampleResume(): ResumeDocument {
         order: 0,
         company: "TechFlow Inc.",
         title: "Senior Software Engineer",
+        projectName: "Real-time analytics platform",
         location: "San Francisco, CA",
         startDate: "2021-03",
         endDate: undefined,

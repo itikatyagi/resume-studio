@@ -250,7 +250,12 @@ export function SectionBlock({
                 item.current,
               );
               const bullets = item.bullets.filter((b) => b.trim());
-              if (!item.company && !item.title && bullets.length === 0)
+              if (
+                !item.company &&
+                !item.title &&
+                !item.projectName?.trim() &&
+                bullets.length === 0
+              )
                 return null;
               return (
                 <div key={item.id} className="experience-item">
@@ -272,6 +277,14 @@ export function SectionBlock({
                           .filter(Boolean)
                           .join(" · ")}
                       </p>
+                      {item.projectName?.trim() && (
+                        <p
+                          className="text-[9.5pt] italic"
+                          style={{ color: c.mainMuted }}
+                        >
+                          Project: {item.projectName.trim()}
+                        </p>
+                      )}
                     </div>
                     {dateRange && (
                       <p

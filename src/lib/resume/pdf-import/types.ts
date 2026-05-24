@@ -1,6 +1,7 @@
 export type DraftExperience = {
   title: string;
   company: string;
+  projectName?: string;
   location?: string;
   startDate?: string;
   endDate?: string;

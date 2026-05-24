@@ -69,6 +69,7 @@ export function hasExperienceContent(
     (item) =>
       hasText(item.company) ||
       hasText(item.title) ||
+      hasText(item.projectName) ||
       item.bullets.some((b) => hasText(b)),
   );
 }

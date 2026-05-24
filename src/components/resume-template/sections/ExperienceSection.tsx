@@ -41,6 +41,11 @@ export function ExperienceSection({ items }: ExperienceSectionProps) {
                   <p className="text-sm text-zinc-700">
                     {[item.company, item.location].filter(Boolean).join(" · ")}
                   </p>
+                  {item.projectName?.trim() && (
+                    <p className="text-sm italic text-zinc-500">
+                      Project: {item.projectName.trim()}
+                    </p>
+                  )}
                 </div>
                 {dateRange && (
                   <p className="shrink-0 text-xs text-zinc-500">{dateRange}</p>

@@ -41,6 +41,7 @@ export const experienceItemSchema = z.object({
   order: z.number(),
   company: z.string(),
   title: z.string(),
+  projectName: z.string().optional(),
   location: z.string().optional(),
   startDate: dateStringSchema,
   endDate: dateStringSchema.optional(),

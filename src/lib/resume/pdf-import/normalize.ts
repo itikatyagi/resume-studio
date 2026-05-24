@@ -44,6 +44,7 @@ export function normalizeDraftResume(draft: DraftResume): ResumeContent | null {
       order,
       company: item.company || "Company",
       title: item.title || "Role",
+      projectName: item.projectName?.trim() || undefined,
       location: item.location,
       startDate: validDate(item.startDate) ?? defaultStartDate(),
       endDate: item.current ? undefined : validDate(item.endDate),
