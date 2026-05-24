@@ -1,5 +1,6 @@
 "use client";
 
+import { Fragment } from "react";
 import { Plus, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -16,6 +17,8 @@ import type {
   ProjectItem,
   SkillEntry,
 } from "@/lib/resume/schema";
+import type { LayoutSectionId } from "@/lib/resume/layout-schema";
+import { getContentEditorSectionOrder, getEffectiveLayout } from "@/lib/resume/layout-utils";
 import { createId, nextOrder, useResumeStore } from "@/lib/resume/store";
 import {
   CollapsibleEntry,
@@ -848,18 +851,28 @@ function SummaryEditor() {
   );
 }
 
+const SECTION_EDITORS: Record<LayoutSectionId, () => React.ReactNode> = {
+  summary: () => <SummaryEditor />,
+  experience: () => <ExperienceEditor />,
+  education: () => <EducationEditor />,
+  skills: () => <SkillsEditor />,
+  projects: () => <ProjectsEditor />,
+  certifications: () => <CertificationsEditor />,
+  languages: () => <LanguagesEditor />,
+  customSections: () => <CustomSectionsEditor />,
+};
+
 export function EditorSections() {
+  const document = useResumeStore((s) => s.document);
+  const layout = getEffectiveLayout(document);
+  const sectionOrder = getContentEditorSectionOrder(layout);
+
   return (
     <div className="space-y-4 pb-8">
       <ProfileEditor />
-      <SummaryEditor />
-      <ExperienceEditor />
-      <EducationEditor />
-      <SkillsEditor />
-      <ProjectsEditor />
-      <CertificationsEditor />
-      <LanguagesEditor />
-      <CustomSectionsEditor />
+      {sectionOrder.map((sectionId) => (
+        <Fragment key={sectionId}>{SECTION_EDITORS[sectionId]()}</Fragment>
+      ))}
     </div>
   );
 }

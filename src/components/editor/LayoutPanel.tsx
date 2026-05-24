@@ -1,57 +1,23 @@
 "use client";
 
-import { ChevronDown, ChevronUp, RotateCcw } from "lucide-react";
+import { RotateCcw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import {
   FONT_FAMILIES,
   HEADING_STYLES,
-  LAYOUT_SECTION_IDS,
   PROFILE_STYLES,
   SKILL_STYLES,
   type LayoutConfig,
-  type LayoutSectionId,
 } from "@/lib/resume/layout-schema";
 import {
   getEffectiveLayout,
-  moveSectionInList,
   resolveTypography,
 } from "@/lib/resume/layout-utils";
+import { LayoutSectionOrder } from "./LayoutSectionOrder";
 import { THEME_LIST } from "@/lib/resume/themes";
 import { useResumeStore } from "@/lib/resume/store";
-
-const SECTION_LABELS: Record<LayoutSectionId, string> = {
-  summary: "Summary",
-  experience: "Experience",
-  education: "Education",
-  skills: "Skills",
-  projects: "Projects",
-  certifications: "Certifications",
-  languages: "Languages",
-  customSections: "Custom sections",
-};
-
-function getSectionColumn(
-  layout: LayoutConfig,
-  sectionId: LayoutSectionId,
-): "sidebar" | "main" | "hidden" {
-  if (layout.sidebarSections.includes(sectionId)) return "sidebar";
-  if (layout.mainSections.includes(sectionId)) return "main";
-  return "hidden";
-}
-
-function setSectionColumn(
-  layout: LayoutConfig,
-  sectionId: LayoutSectionId,
-  column: "sidebar" | "main" | "hidden",
-): LayoutConfig {
-  const sidebar = layout.sidebarSections.filter((s) => s !== sectionId);
-  const main = layout.mainSections.filter((s) => s !== sectionId);
-  if (column === "sidebar") sidebar.push(sectionId);
-  if (column === "main") main.push(sectionId);
-  return { ...layout, sidebarSections: sidebar, mainSections: main };
-}
 
 export function LayoutPanel() {
   const document = useResumeStore((s) => s.document);
@@ -356,85 +322,8 @@ export function LayoutPanel() {
         <CardHeader className="pb-3">
           <CardTitle className="text-base">Sections</CardTitle>
         </CardHeader>
-        <CardContent className="space-y-3">
-          <p className="text-xs text-zinc-500">
-            Place sections in sidebar or main column, reorder, or hide.
-          </p>
-          {LAYOUT_SECTION_IDS.map((sectionId) => {
-            const column = getSectionColumn(layout, sectionId);
-            const list =
-              column === "sidebar"
-                ? layout.sidebarSections
-                : column === "main"
-                  ? layout.mainSections
-                  : [];
-            const index = list.indexOf(sectionId);
-
-            return (
-              <div
-                key={sectionId}
-                className="flex flex-wrap items-center justify-between gap-2 rounded-md border border-zinc-100 bg-zinc-50/80 px-2 py-1.5"
-              >
-                <Label className="text-sm">{SECTION_LABELS[sectionId]}</Label>
-                <div className="flex items-center gap-1">
-                  {column !== "hidden" && (
-                    <>
-                      <button
-                        type="button"
-                        disabled={index <= 0}
-                        onClick={() => {
-                          const key =
-                            column === "sidebar"
-                              ? "sidebarSections"
-                              : "mainSections";
-                          applyLayout({
-                            [key]: moveSectionInList(list, index, -1),
-                          });
-                        }}
-                        className="rounded p-1 text-zinc-500 hover:bg-zinc-200 disabled:opacity-30"
-                        aria-label="Move up"
-                      >
-                        <ChevronUp className="size-4" />
-                      </button>
-                      <button
-                        type="button"
-                        disabled={index >= list.length - 1}
-                        onClick={() => {
-                          const key =
-                            column === "sidebar"
-                              ? "sidebarSections"
-                              : "mainSections";
-                          applyLayout({
-                            [key]: moveSectionInList(list, index, 1),
-                          });
-                        }}
-                        className="rounded p-1 text-zinc-500 hover:bg-zinc-200 disabled:opacity-30"
-                        aria-label="Move down"
-                      >
-                        <ChevronDown className="size-4" />
-                      </button>
-                    </>
-                  )}
-                  <select
-                    value={column}
-                    onChange={(e) => {
-                      const col = e.target.value as "sidebar" | "main" | "hidden";
-                      const next = setSectionColumn(layout, sectionId, col);
-                      applyLayout({
-                        sidebarSections: next.sidebarSections,
-                        mainSections: next.mainSections,
-                      });
-                    }}
-                    className="rounded-md border border-zinc-200 bg-white px-2 py-1 text-sm"
-                  >
-                    <option value="sidebar">Sidebar</option>
-                    <option value="main">Main</option>
-                    <option value="hidden">Hidden</option>
-                  </select>
-                </div>
-              </div>
-            );
-          })}
+        <CardContent>
+          <LayoutSectionOrder layout={layout} onApply={applyLayout} />
         </CardContent>
       </Card>
     </div>

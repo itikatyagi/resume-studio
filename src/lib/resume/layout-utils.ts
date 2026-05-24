@@ -1,13 +1,26 @@
 import type {
   FontFamily,
   LayoutConfig,
+  LayoutSectionId,
   Typography,
 } from "./layout-schema";
 import {
   DEFAULT_STYLE_OPTIONS,
   DEFAULT_TYPOGRAPHY,
+  LAYOUT_SECTION_IDS,
   layoutConfigSchema,
 } from "./layout-schema";
+
+export const SECTION_LABELS: Record<LayoutSectionId, string> = {
+  summary: "Summary",
+  experience: "Experience",
+  education: "Education",
+  skills: "Skills",
+  projects: "Projects",
+  certifications: "Certifications",
+  languages: "Languages",
+  customSections: "Custom sections",
+};
 import { getDefaultLayoutForTemplate } from "./layout-presets";
 import { getThemeLayout, resolveThemeId } from "./themes";
 import type { ResumeDocument, TemplateId } from "./schema";
@@ -123,4 +136,61 @@ export function moveSectionInList<T>(
   if (target < 0 || target >= next.length) return list;
   [next[index], next[target]] = [next[target], next[index]];
   return next;
+}
+
+export function getSectionColumn(
+  layout: LayoutConfig,
+  sectionId: LayoutSectionId,
+): "sidebar" | "main" | "hidden" {
+  if (layout.sidebarSections.includes(sectionId)) return "sidebar";
+  if (layout.mainSections.includes(sectionId)) return "main";
+  return "hidden";
+}
+
+export function setSectionColumn(
+  layout: LayoutConfig,
+  sectionId: LayoutSectionId,
+  column: "sidebar" | "main" | "hidden",
+): LayoutConfig {
+  const sidebar = layout.sidebarSections.filter((s) => s !== sectionId);
+  const main = layout.mainSections.filter((s) => s !== sectionId);
+  if (column === "sidebar") sidebar.push(sectionId);
+  if (column === "main") main.push(sectionId);
+  return { ...layout, sidebarSections: sidebar, mainSections: main };
+}
+
+export function getHiddenLayoutSections(
+  layout: LayoutConfig,
+): LayoutSectionId[] {
+  return LAYOUT_SECTION_IDS.filter(
+    (id) =>
+      !layout.sidebarSections.includes(id) &&
+      !layout.mainSections.includes(id),
+  );
+}
+
+/** Content editor order: sidebar (top→bottom), then main, then hidden. */
+export function getContentEditorSectionOrder(
+  layout: LayoutConfig,
+): LayoutSectionId[] {
+  const hidden = getHiddenLayoutSections(layout);
+  if (layout.structure === "single-column") {
+    return [...layout.mainSections, ...hidden];
+  }
+  return [...layout.sidebarSections, ...layout.mainSections, ...hidden];
+}
+
+export function moveLayoutSection(
+  layout: LayoutConfig,
+  sectionId: LayoutSectionId,
+  dir: -1 | 1,
+): Partial<LayoutConfig> | null {
+  const column = getSectionColumn(layout, sectionId);
+  if (column === "hidden") return null;
+  const key =
+    column === "sidebar" ? "sidebarSections" : "mainSections";
+  const list = layout[key];
+  const index = list.indexOf(sectionId);
+  if (index < 0) return null;
+  return { [key]: moveSectionInList(list, index, dir) };
 }
