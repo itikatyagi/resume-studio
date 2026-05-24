@@ -20,7 +20,11 @@ export function ProjectsSection({ items }: ProjectsSectionProps) {
       <SectionHeading title="Projects" />
       <div className="space-y-3">
         {sorted.map((item) => {
-          const dateRange = formatDateRange(item.startDate, item.endDate);
+          const dateRange = formatDateRange(
+            item.startDate,
+            item.endDate,
+            item.current,
+          );
           const bullets = item.bullets.filter((b) => b.trim());
 
           if (!item.name && !item.description && bullets.length === 0) return null;

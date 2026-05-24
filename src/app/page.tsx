@@ -1,13 +1,7 @@
 import Link from "next/link";
-import {
-  ArrowRight,
-  Download,
-  Eye,
-  FileText,
-  Shield,
-  Sparkles,
-  Zap,
-} from "lucide-react";
+import { ArrowRight, Download, Eye, Shield, Sparkles, Zap } from "lucide-react";
+import { HomeHeroActions } from "@/components/home/HomeHeroActions";
+import { TemplateGallery } from "@/components/home/TemplateGallery";
 import { Button } from "@/components/ui/button";
 
 function ResumeMockup() {
@@ -125,30 +119,17 @@ export default function Home() {
               </span>
             </h1>
             <p className="mt-5 max-w-lg text-lg leading-relaxed text-zinc-400">
-              A clean, structured editor with live preview and instant PDF export.
-              Professional results in minutes — not hours.
+              Edit content and layout in the browser — colors, columns, and section
+              placement. No code. Live preview and PDF export included.
             </p>
-            <div className="mt-8 flex flex-wrap gap-3">
-              <Button asChild size="lg" className="h-12 px-6">
-                <Link href="/editor">
-                  <FileText className="size-4" />
-                  Start building
-                </Link>
-              </Button>
-              <Button
-                asChild
-                variant="outline"
-                size="lg"
-                className="h-12 border-white/20 bg-white/5 px-6 text-zinc-100 hover:bg-white/10 hover:text-white"
-              >
-                <Link href="/preview">View sample resume</Link>
-              </Button>
-            </div>
+            <HomeHeroActions />
           </div>
 
           <ResumeMockup />
         </div>
       </section>
+
+      <TemplateGallery />
 
       <section className="border-t border-white/10 bg-zinc-900/50">
         <div className="mx-auto max-w-6xl px-6 py-20">

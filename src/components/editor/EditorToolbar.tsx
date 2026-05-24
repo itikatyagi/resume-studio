@@ -1,17 +1,34 @@
 "use client";
 
 import Link from "next/link";
-import { Download, FileJson, Printer, RotateCcw, Sparkles } from "lucide-react";
+import {
+  Download,
+  FileUp,
+  Palette,
+  Printer,
+  RotateCcw,
+  Sparkles,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { getEffectiveLayout } from "@/lib/resume/layout-utils";
+import { THEME_LIST } from "@/lib/resume/themes";
 import { useResumeStore } from "@/lib/resume/store";
 
-export function EditorToolbar() {
+type EditorToolbarProps = {
+  onOpenImport?: () => void;
+};
+
+export function EditorToolbar({ onOpenImport }: EditorToolbarProps) {
   const exportDocument = useResumeStore((s) => s.exportDocument);
-  const importDocument = useResumeStore((s) => s.importDocument);
   const newBlank = useResumeStore((s) => s.newBlank);
   const loadSample = useResumeStore((s) => s.loadSample);
   const title = useResumeStore((s) => s.document.meta.title);
+  const document = useResumeStore((s) => s.document);
+  const applyTheme = useResumeStore((s) => s.applyTheme);
   const updateMetaTitle = useResumeStore((s) => s.updateMetaTitle);
+
+  const layout = getEffectiveLayout(document);
+  const activeTheme = layout.themeId ?? "novo-blue";
 
   function handlePrint() {
     window.print();
@@ -20,25 +37,11 @@ export function EditorToolbar() {
   function handleExport() {
     const blob = new Blob([exportDocument()], { type: "application/json" });
     const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
+    const a = window.document.createElement("a");
     a.href = url;
     a.download = `${title.replace(/\s+/g, "-").toLowerCase() || "resume"}.json`;
     a.click();
     URL.revokeObjectURL(url);
-  }
-
-  function handleImport() {
-    const input = document.createElement("input");
-    input.type = "file";
-    input.accept = "application/json,.json";
-    input.onchange = async () => {
-      const file = input.files?.[0];
-      if (!file) return;
-      const text = await file.text();
-      const ok = importDocument(text);
-      if (!ok) alert("Invalid resume file. Please check the JSON format.");
-    };
-    input.click();
   }
 
   return (
@@ -56,7 +59,25 @@ export function EditorToolbar() {
         className="min-w-0 flex-1 rounded-md border border-zinc-200 bg-zinc-50 px-3 py-1.5 text-sm focus:border-zinc-400 focus:outline-none"
         placeholder="Resume title"
       />
+      <label className="flex items-center gap-2 text-sm text-zinc-600">
+        <Palette className="size-4 shrink-0" />
+        <select
+          value={activeTheme}
+          onChange={(e) => applyTheme(e.target.value)}
+          className="max-w-[11rem] rounded-md border border-zinc-200 bg-zinc-50 px-2 py-1.5 text-sm focus:border-zinc-400 focus:outline-none"
+        >
+          {THEME_LIST.map((t) => (
+            <option key={t.id} value={t.id}>
+              {t.name}
+            </option>
+          ))}
+        </select>
+      </label>
       <div className="flex flex-wrap items-center gap-2">
+        <Button variant="outline" size="sm" onClick={onOpenImport}>
+          <FileUp className="size-4" />
+          Import resume
+        </Button>
         <Button variant="outline" size="sm" onClick={loadSample}>
           <Sparkles className="size-4" />
           Sample
@@ -64,10 +85,6 @@ export function EditorToolbar() {
         <Button variant="outline" size="sm" onClick={newBlank}>
           <RotateCcw className="size-4" />
           New
-        </Button>
-        <Button variant="outline" size="sm" onClick={handleImport}>
-          <FileJson className="size-4" />
-          Import
         </Button>
         <Button variant="outline" size="sm" onClick={handleExport}>
           <Download className="size-4" />

@@ -1,10 +1,3 @@
 export { ResumeDocument } from "./ResumeDocument";
-export { ProfileSection } from "./ProfileSection";
-export { SummarySection } from "./SummarySection";
-export { ExperienceSection } from "./ExperienceSection";
-export { EducationSection } from "./EducationSection";
-export { SkillsSection } from "./SkillsSection";
-export { ProjectsSection } from "./ProjectsSection";
-export { CertificationsSection } from "./CertificationsSection";
-export { LanguagesSection } from "./LanguagesSection";
-export { CustomSectionsBlock } from "./CustomSectionsBlock";
+export { TEMPLATE_REGISTRY, TEMPLATE_LIST, getTemplate, getTemplateLabel } from "./registry";
+export type { ResumeTemplateProps, TemplateDefinition } from "./types";

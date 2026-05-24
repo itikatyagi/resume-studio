@@ -1,4 +1,5 @@
-import { ResumeEditor } from "@/components/editor/ResumeEditor";
+import { Suspense } from "react";
+import { EditorShell } from "@/components/editor/EditorShell";
 import "@/styles/resume-print.css";
 
 export const metadata = {
@@ -7,5 +8,15 @@ export const metadata = {
 };
 
 export default function EditorPage() {
-  return <ResumeEditor />;
+  return (
+    <Suspense
+      fallback={
+        <div className="flex min-h-screen items-center justify-center text-zinc-500">
+          Loading editor…
+        </div>
+      }
+    >
+      <EditorShell />
+    </Suspense>
+  );
 }

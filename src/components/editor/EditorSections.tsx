@@ -17,6 +17,7 @@ import type {
   SkillEntry,
 } from "@/lib/resume/schema";
 import { createId, nextOrder, useResumeStore } from "@/lib/resume/store";
+import { SkillsTagInput } from "./SkillsTagInput";
 
 function SectionCard({
   title,
@@ -430,18 +431,10 @@ function SkillsEditor() {
               placeholder="Languages"
             />
           </FieldRow>
-          <FieldRow label="Skills (comma-separated)">
-            <Input
-              value={item.skills.join(", ")}
-              onChange={(e) =>
-                updateItem(index, {
-                  skills: e.target.value
-                    .split(",")
-                    .map((s) => s.trim())
-                    .filter(Boolean),
-                })
-              }
-              placeholder="React, TypeScript, Node.js"
+          <FieldRow label="Skills">
+            <SkillsTagInput
+              skills={item.skills}
+              onChange={(skills) => updateItem(index, { skills })}
             />
           </FieldRow>
           <ItemActions
@@ -470,9 +463,6 @@ function ProjectsEditor() {
       id: createId(),
       order: nextOrder(projects),
       name: "",
-      url: "",
-      startDate: "",
-      endDate: "",
       description: "",
       bullets: [],
     };
@@ -493,9 +483,51 @@ function ProjectsEditor() {
             <FieldRow label="URL (optional)">
               <Input
                 value={item.url ?? ""}
-                onChange={(e) => updateItem(index, { url: e.target.value })}
+                onChange={(e) =>
+                  updateItem(index, { url: e.target.value || undefined })
+                }
                 placeholder="https://"
               />
+            </FieldRow>
+          </div>
+          <div className="grid gap-3 sm:grid-cols-3">
+            <FieldRow label="Start date (YYYY or YYYY-MM)">
+              <Input
+                value={item.startDate ?? ""}
+                onChange={(e) =>
+                  updateItem(index, {
+                    startDate: e.target.value || undefined,
+                  })
+                }
+                placeholder="2022-01"
+              />
+            </FieldRow>
+            <FieldRow label="End date">
+              <Input
+                value={item.endDate ?? ""}
+                onChange={(e) =>
+                  updateItem(index, {
+                    endDate: e.target.value || undefined,
+                  })
+                }
+                placeholder="2023-06"
+                disabled={item.current}
+              />
+            </FieldRow>
+            <FieldRow label="Ongoing project">
+              <label className="flex items-center gap-2 pt-2 text-sm">
+                <input
+                  type="checkbox"
+                  checked={item.current ?? false}
+                  onChange={(e) =>
+                    updateItem(index, {
+                      current: e.target.checked,
+                      endDate: e.target.checked ? undefined : item.endDate,
+                    })
+                  }
+                />
+                Present
+              </label>
             </FieldRow>
           </div>
           <FieldRow label="Description">

@@ -1,7 +1,8 @@
+import { getThemeLayout } from "./themes";
 import {
   resumeDocumentSchema,
   SCHEMA_VERSION,
-  TEMPLATE_ID,
+  DEFAULT_TEMPLATE_ID,
   type ResumeContent,
   type ResumeDocument,
 } from "./schema";
@@ -31,12 +32,17 @@ function blankContent(): ResumeContent {
   };
 }
 
-function baseDocument(title: string, content: ResumeContent): ResumeDocument {
+function baseDocument(
+  title: string,
+  content: ResumeContent,
+  themeId = "novo-blue",
+): ResumeDocument {
   const now = new Date().toISOString();
   return resumeDocumentSchema.parse({
     id: createResumeId(),
     schemaVersion: SCHEMA_VERSION,
-    templateId: TEMPLATE_ID,
+    templateId: DEFAULT_TEMPLATE_ID,
+    layoutConfig: getThemeLayout(themeId),
     meta: {
       title,
       createdAt: now,
@@ -46,8 +52,8 @@ function baseDocument(title: string, content: ResumeContent): ResumeDocument {
   });
 }
 
-export function createBlankResume(): ResumeDocument {
-  return baseDocument("Untitled Resume", blankContent());
+export function createBlankResume(themeId = "novo-blue"): ResumeDocument {
+  return baseDocument("Untitled Resume", blankContent(), themeId);
 }
 
 export function createSampleResume(): ResumeDocument {

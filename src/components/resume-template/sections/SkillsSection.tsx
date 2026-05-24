@@ -1,5 +1,6 @@
 import type { SkillEntry } from "@/lib/resume/schema";
 import { hasSkillsContent, sortByOrder } from "@/lib/resume/formatters";
+import { SkillChipList } from "../SkillChipList";
 import { SectionHeading } from "./SectionHeading";
 
 type SkillsSectionProps = {
@@ -14,19 +15,19 @@ export function SkillsSection({ items }: SkillsSectionProps) {
   return (
     <section className="skills-section mb-5" aria-label="Skills">
       <SectionHeading title="Skills" />
-      <div className="space-y-2">
+      <div className="space-y-3">
         {sorted.map((item) => {
           const skills = item.skills.filter((s) => s.trim());
           if (skills.length === 0) return null;
 
           return (
-            <div key={item.id} className="text-sm text-zinc-700">
+            <div key={item.id}>
               {item.groupName && (
-                <span className="font-semibold text-zinc-900">
-                  {item.groupName}:{" "}
-                </span>
+                <p className="mb-2 text-sm font-semibold text-zinc-900">
+                  {item.groupName}
+                </p>
               )}
-              <span>{skills.join(", ")}</span>
+              <SkillChipList skills={skills} variant="classic" />
             </div>
           );
         })}

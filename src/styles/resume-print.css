@@ -5,11 +5,32 @@
 .resume-page {
   width: 8.5in;
   min-height: 11in;
-  padding: 0.5in;
-  font-family: Georgia, "Times New Roman", Times, serif;
-  font-size: 10.5pt;
-  line-height: 1.4;
-  color: #18181b;
+  color: var(--resume-main-text, #18181b);
+  font-family: var(--resume-font-family, system-ui, sans-serif);
+  font-size: var(--resume-font-size, 10.5pt);
+  line-height: var(--resume-line-height, 1.45);
+}
+
+.resume-page-universal {
+  padding: 0;
+  overflow: hidden;
+}
+
+.resume-page-universal .universal-layout {
+  min-height: 11in;
+}
+
+.resume-page-universal .config-header,
+.resume-page-universal .config-sidebar {
+  print-color-adjust: exact;
+  -webkit-print-color-adjust: exact;
+}
+
+/* Legacy class aliases */
+.resume-page-novo15,
+.resume-page-classic {
+  padding: 0;
+  overflow: hidden;
 }
 
 @page {
@@ -33,7 +54,16 @@
     margin: 0 !important;
     width: 100% !important;
     min-height: auto !important;
-    padding: 0 !important;
+  }
+
+  .resume-page-universal .config-header {
+    background-color: var(--resume-header-bg) !important;
+    color: var(--resume-header-text) !important;
+  }
+
+  .resume-page-universal .config-sidebar {
+    background-color: var(--resume-sidebar-bg) !important;
+    color: var(--resume-sidebar-text) !important;
   }
 
   .experience-item,
@@ -41,5 +71,10 @@
   .project-item {
     break-inside: avoid;
     page-break-inside: avoid;
+  }
+
+  .skill-chip {
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
   }
 }

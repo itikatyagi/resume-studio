@@ -5,7 +5,16 @@ import {
   createBlankResume,
   createSampleResume,
 } from "./defaults";
+import {
+  applyTemplatePreset,
+  applyThemeToDocument,
+  getEffectiveLayout,
+  resolveTypography,
+} from "./layout-utils";
+import { getDefaultLayoutForTemplate } from "./layout-presets";
+import { getThemeLayout, isThemeId } from "./themes";
 import { migrateResume } from "./migrations";
+import type { LayoutConfig } from "./layout-schema";
 import {
   resumeDocumentSchema,
   type CertificationItem,
@@ -18,6 +27,7 @@ import {
   type ResumeContent,
   type ResumeDocument,
   type SkillEntry,
+  type TemplateId,
 } from "./schema";
 
 const STORAGE_KEY = "resume-studio-document";
@@ -76,9 +86,15 @@ type ResumeStore = {
   updateLanguages: (languages: LanguageItem[]) => void;
   updateCustomSections: (customSections: CustomSection[]) => void;
   updateMetaTitle: (title: string) => void;
+  setTemplateId: (templateId: TemplateId) => void;
+  applyTheme: (themeId: string) => void;
+  updateLayoutConfig: (patch: Partial<LayoutConfig>) => void;
+  resetLayoutConfig: () => void;
+  startWithTemplate: (templateId: TemplateId) => void;
   newBlank: () => void;
   loadSample: () => void;
   importDocument: (json: string) => boolean;
+  importContent: (content: ResumeContent) => void;
   exportDocument: () => string;
 };
 
@@ -159,6 +175,49 @@ export const useResumeStore = create<ResumeStore>()((set, get) => ({
     commit(set, doc);
   },
 
+  setTemplateId: (templateId) => {
+    const { document } = get();
+    commit(set, applyTemplatePreset(document, templateId));
+  },
+
+  applyTheme: (themeId) => {
+    if (!isThemeId(themeId)) return;
+    const { document } = get();
+    commit(set, applyThemeToDocument(document, themeId));
+  },
+
+  updateLayoutConfig: (patch) => {
+    const { document } = get();
+    const current = getEffectiveLayout(document);
+    const next: LayoutConfig = {
+      ...current,
+      ...patch,
+      colors: patch.colors
+        ? { ...current.colors, ...patch.colors }
+        : current.colors,
+      typography: patch.typography
+        ? { ...resolveTypography(current), ...patch.typography }
+        : current.typography,
+    };
+    commit(set, { ...document, layoutConfig: next });
+  },
+
+  resetLayoutConfig: () => {
+    const { document } = get();
+    const layout = getEffectiveLayout(document);
+    const themeId = layout.themeId ?? "novo-blue";
+    commit(set, {
+      ...document,
+      layoutConfig: getThemeLayout(themeId),
+    });
+  },
+
+  startWithTemplate: (templateId) => {
+    const themeId = templateId;
+    const doc = createBlankResume();
+    commit(set, applyTemplatePreset(doc, themeId));
+  },
+
   newBlank: () => {
     const doc = createBlankResume();
     commit(set, doc);
@@ -178,6 +237,21 @@ export const useResumeStore = create<ResumeStore>()((set, get) => ({
     } catch {
       return false;
     }
+  },
+
+  importContent: (content) => {
+    const { document } = get();
+    const title =
+      content.profile.fullName.trim() || document.meta.title || "My resume";
+    commit(set, {
+      ...document,
+      content,
+      meta: {
+        ...document.meta,
+        title,
+        updatedAt: new Date().toISOString(),
+      },
+    });
   },
 
   exportDocument: () => JSON.stringify(get().document, null, 2),

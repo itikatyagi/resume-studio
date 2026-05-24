@@ -1,10 +1,20 @@
 import { z } from "zod";
+import { layoutConfigSchema } from "./layout-schema";
 
 export const SCHEMA_VERSION = 1 as const;
-export const TEMPLATE_ID = "default-v1" as const;
+
+export const TEMPLATE_IDS = [
+  "universal-v1",
+  "novo-15-v1",
+  "default-v1",
+] as const;
+export type TemplateId = (typeof TEMPLATE_IDS)[number];
+export const DEFAULT_TEMPLATE_ID: TemplateId = "universal-v1";
+
+/** @deprecated use DEFAULT_TEMPLATE_ID */
+export const TEMPLATE_ID = DEFAULT_TEMPLATE_ID;
 
 export type SchemaVersion = typeof SCHEMA_VERSION;
-export type TemplateId = typeof TEMPLATE_ID;
 
 /** YYYY or YYYY-MM */
 export const dateStringSchema = z
@@ -64,6 +74,7 @@ export const projectItemSchema = z.object({
   url: z.string().url().optional(),
   startDate: dateStringSchema.optional(),
   endDate: dateStringSchema.optional(),
+  current: z.boolean().optional(),
   description: z.string().optional(),
   bullets: z.array(z.string()).default([]),
 });
@@ -111,10 +122,14 @@ export const resumeMetaSchema = z.object({
 export const resumeDocumentSchema = z.object({
   id: z.string().uuid(),
   schemaVersion: z.literal(SCHEMA_VERSION),
-  templateId: z.literal(TEMPLATE_ID),
+  templateId: z.enum(TEMPLATE_IDS),
+  /** Browser-editable layout; defaults come from template preset */
+  layoutConfig: layoutConfigSchema.optional(),
   meta: resumeMetaSchema,
   content: resumeContentSchema,
 });
+
+export type { LayoutConfig, LayoutSectionId } from "./layout-schema";
 
 export type Link = z.infer<typeof linkSchema>;
 export type Profile = z.infer<typeof profileSchema>;
