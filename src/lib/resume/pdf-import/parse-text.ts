@@ -19,7 +19,8 @@ type SectionKey =
   | "skills"
   | "projects"
   | "certifications"
-  | "languages";
+  | "languages"
+  | "interests";
 
 const SECTION_PATTERNS: { key: SectionKey; re: RegExp }[] = [
   { key: "summary", re: /^(professional\s+)?summary$/i },
@@ -37,7 +38,12 @@ const SECTION_PATTERNS: { key: SectionKey; re: RegExp }[] = [
   { key: "certifications", re: /^certifications?$/i },
   { key: "certifications", re: /^licenses?(?:\s+(&|and)\s+certifications?)?$/i },
   { key: "languages", re: /^languages?$/i },
+  { key: "interests", re: /^interests?$/i },
+  { key: "interests", re: /^hobbies$/i },
+  { key: "interests", re: /^activities$/i },
 ];
+
+const PAGE_LABEL_RE = /^[-–—\s]*\d+\s+of\s+\d+[-–—\s]*$/i;
 
 function normalizeLines(text: string): string[] {
   return text
@@ -46,6 +52,7 @@ function normalizeLines(text: string): string[] {
     .map((line) => line.replace(/\s+/g, " ").trim())
     .filter((line, i, arr) => {
       if (!line) return false;
+      if (PAGE_LABEL_RE.test(line)) return false;
       if (i > 0 && !line && !arr[i - 1]) return false;
       return true;
     });
@@ -241,7 +248,7 @@ function parseSkillLine(line: string): string[] {
   }
 
   const parts = line
-    .split(/[,;|•]/)
+    .split(/[,;|•●▪◦*]|[\uE000-\uF8FF]+/)
     .map((part) => part.trim())
     .filter(Boolean);
 
@@ -385,6 +392,8 @@ export function parseResumeText(text: string): DraftResume {
     },
   );
 
+  const interests = parseListSection(sections.get("interests") ?? []);
+
   return {
     profile,
     summary,
@@ -394,5 +403,6 @@ export function parseResumeText(text: string): DraftResume {
     projects,
     certifications,
     languages,
+    interests,
   };
 }

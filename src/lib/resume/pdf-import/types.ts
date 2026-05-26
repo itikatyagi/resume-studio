@@ -49,4 +49,5 @@ export type DraftResume = {
   projects: DraftProject[];
   certifications: { name: string; issuer?: string; date?: string }[];
   languages: { name: string; level?: string }[];
+  interests: string[];
 };

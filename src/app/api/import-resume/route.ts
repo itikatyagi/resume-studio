@@ -1,9 +1,11 @@
 import { NextResponse } from "next/server";
+import { extractEmbeddedResumeContent } from "@/lib/resume/pdf-import/embedded-payload";
 import { extractTextFromPdf } from "@/lib/resume/pdf-import/extract-pdf";
 import { normalizeDraftResume } from "@/lib/resume/pdf-import/normalize";
 import { parseResumeText } from "@/lib/resume/pdf-import/parse-text";
 
 export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
 
 const MAX_BYTES = 8 * 1024 * 1024;
 
@@ -35,6 +37,11 @@ export async function POST(request: Request) {
 
     const buffer = Buffer.from(await file.arrayBuffer());
     const text = await extractTextFromPdf(buffer);
+    const embeddedContent = extractEmbeddedResumeContent(text);
+
+    if (embeddedContent) {
+      return NextResponse.json({ content: embeddedContent });
+    }
 
     if (!text.trim()) {
       return NextResponse.json(

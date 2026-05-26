@@ -98,7 +98,17 @@ export function normalizeDraftResume(draft: DraftResume): ResumeContent | null {
       language: item.name,
       proficiency: item.level,
     })),
-    customSections: [],
+    customSections:
+      draft.interests.length > 0
+        ? [
+            {
+              id: randomUUID(),
+              order: 0,
+              title: "Interests",
+              content: draft.interests.join("\n"),
+            },
+          ]
+        : [],
   };
 
   const parsed = resumeContentSchema.safeParse(content);

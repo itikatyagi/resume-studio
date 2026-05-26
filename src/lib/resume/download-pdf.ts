@@ -6,10 +6,35 @@ import {
   computeLetterPageSlices,
   sliceHeightsPx,
 } from "@/lib/resume/page-breaks";
+import type { ResumeDocument } from "@/lib/resume/schema";
+
+const IMPORT_PAYLOAD_BEGIN = "RESUME_STUDIO_IMPORT_V1_BEGIN";
+const IMPORT_PAYLOAD_END = "RESUME_STUDIO_IMPORT_V1_END";
 
 function sanitizeFilename(name: string): string {
   const cleaned = name.replace(/[^\w\s-]/g, "").replace(/\s+/g, "-").toLowerCase();
   return cleaned || "resume";
+}
+
+function encodeImportPayload(document?: ResumeDocument): string | null {
+  if (!document) return null;
+  const json = JSON.stringify(document);
+  const bytes = new TextEncoder().encode(json);
+  let binary = "";
+  for (const byte of bytes) binary += String.fromCharCode(byte);
+  return btoa(binary);
+}
+
+function addImportPayload(pdf: jsPDF, payload: string): void {
+  const pageCount = pdf.getNumberOfPages();
+  pdf.setPage(1);
+  pdf.setFontSize(1);
+  pdf.setTextColor(255, 255, 255);
+
+  const chunks = payload.match(/.{1,90}/g) ?? [];
+  pdf.text([IMPORT_PAYLOAD_BEGIN, ...chunks, IMPORT_PAYLOAD_END], 1, 1);
+  pdf.setTextColor(0, 0, 0);
+  pdf.setPage(pageCount);
 }
 
 type PdfLinkRect = {
@@ -185,6 +210,7 @@ async function canvasToPdf(
   filename: string,
   sliceHeights?: number[],
   links: PdfLinkRect[] = [],
+  importPayload?: string | null,
 ): Promise<void> {
   const trimmed = trimCanvasBottom(canvas);
   const pdf = new jsPDF({ unit: "pt", format: "letter", orientation: "portrait" });
@@ -193,6 +219,10 @@ async function canvasToPdf(
   const imgWidth = pageWidth;
   const pxPageHeight = Math.floor((trimmed.width * pageHeight) / pageWidth);
   const minSlicePx = 12;
+
+  // Write the import payload before the screenshots so the image covers it visually,
+  // while PDF text extraction can still recover the data on re-import.
+  if (importPayload) addImportPayload(pdf, importPayload);
 
   const plannedSlices =
     sliceHeights && sliceHeights.length > 0
@@ -260,6 +290,7 @@ async function canvasToPdf(
 export async function downloadResumePdf(
   element: HTMLElement,
   filename: string,
+  resumeDocument?: ResumeDocument,
 ): Promise<void> {
   await document.fonts.ready;
 
@@ -294,8 +325,9 @@ export async function downloadResumePdf(
       const contentWidthPx = element.getBoundingClientRect().width;
       const slices = computeLetterPageSlices(element, contentWidthPx);
       const heightsPx = sliceHeightsPx(slices, contentWidthPx, captureScale);
+      const importPayload = encodeImportPayload(resumeDocument);
 
-      await canvasToPdf(canvas, filename, heightsPx, pdfLinks);
+      await canvasToPdf(canvas, filename, heightsPx, pdfLinks, importPayload);
     } finally {
       restoreLayout();
     }

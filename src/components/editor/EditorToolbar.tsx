@@ -47,7 +47,7 @@ export function EditorToolbar({ onOpenImport }: EditorToolbarProps) {
         document.content.profile.fullName.trim() ||
         title.trim() ||
         "resume";
-      await downloadResumePdf(page, filename);
+      await downloadResumePdf(page, filename, document);
     } finally {
       setPdfLoading(false);
     }
