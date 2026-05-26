@@ -7,7 +7,9 @@ export const TEMPLATE_IDS = [
   "universal-v1",
   "novo-15-v1",
   "default-v1",
+  "itika-v1",
 ] as const;
+
 export type TemplateId = (typeof TEMPLATE_IDS)[number];
 export const DEFAULT_TEMPLATE_ID: TemplateId = "universal-v1";
 
@@ -21,10 +23,23 @@ export const dateStringSchema = z
   .string()
   .regex(/^\d{4}(-\d{2})?$/, "Date must be YYYY or YYYY-MM");
 
+const optionalDateInputSchema = z.preprocess(
+  (value) => (value === "" ? undefined : value),
+  dateStringSchema.optional(),
+);
+
+const requiredDateInputSchema = z.union([dateStringSchema, z.literal("")]);
+
+const editableUrlSchema = z.union([
+  z.string().url(),
+  z.literal(""),
+  z.literal("https://"),
+]);
+
 export const linkSchema = z.object({
   id: z.string().uuid(),
   label: z.string(),
-  url: z.string().url(),
+  url: editableUrlSchema,
 });
 
 export const profileSchema = z.object({
@@ -43,8 +58,8 @@ export const experienceItemSchema = z.object({
   title: z.string(),
   projectName: z.string().optional(),
   location: z.string().optional(),
-  startDate: dateStringSchema,
-  endDate: dateStringSchema.optional(),
+  startDate: requiredDateInputSchema,
+  endDate: optionalDateInputSchema,
   current: z.boolean().optional(),
   bullets: z.array(z.string()).default([]),
 });
@@ -55,8 +70,8 @@ export const educationItemSchema = z.object({
   institution: z.string(),
   degree: z.string(),
   field: z.string().optional(),
-  startDate: dateStringSchema.optional(),
-  endDate: dateStringSchema.optional(),
+  startDate: optionalDateInputSchema,
+  endDate: optionalDateInputSchema,
   current: z.boolean().optional(),
   details: z.string().optional(),
 });
@@ -72,9 +87,12 @@ export const projectItemSchema = z.object({
   id: z.string().uuid(),
   order: z.number(),
   name: z.string(),
-  url: z.string().url().optional(),
-  startDate: dateStringSchema.optional(),
-  endDate: dateStringSchema.optional(),
+  url: z.preprocess(
+    (value) => (value === "" ? undefined : value),
+    z.string().url().optional(),
+  ),
+  startDate: optionalDateInputSchema,
+  endDate: optionalDateInputSchema,
   current: z.boolean().optional(),
   description: z.string().optional(),
   bullets: z.array(z.string()).default([]),
@@ -85,7 +103,7 @@ export const certificationItemSchema = z.object({
   order: z.number(),
   name: z.string(),
   issuer: z.string().optional(),
-  date: dateStringSchema.optional(),
+  date: optionalDateInputSchema,
 });
 
 export const languageItemSchema = z.object({

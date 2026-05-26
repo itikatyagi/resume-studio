@@ -1,5 +1,10 @@
 import type { LayoutConfig } from "./layout-schema";
-import { createBaseLayout, NOVO_USER_LAYOUT, CLASSIC_LAYOUT } from "./layout-presets";
+import {
+  createBaseLayout,
+  NOVO_USER_LAYOUT,
+  CLASSIC_LAYOUT,
+  ITIKA_LAYOUT,
+} from "./layout-presets";
 
 export type ThemeDefinition = {
   id: string;
@@ -10,6 +15,14 @@ export type ThemeDefinition = {
 };
 
 export const THEME_CATALOG: ThemeDefinition[] = [
+  {
+    id: "itika-pro",
+    name: "Professional Red",
+    description:
+      "Centered header, summary box, contact bar, experience left & skills right",
+    category: "modern",
+    layout: structuredClone(ITIKA_LAYOUT),
+  },
   {
     id: "novo-blue",
     name: "Professional Blue",
@@ -363,6 +376,7 @@ export const LEGACY_TEMPLATE_TO_THEME: Record<string, string> = {
   "novo-15-v1": "novo-blue",
   "default-v1": "classic-serif",
   "universal-v1": "novo-blue",
+  "itika-v1": "itika-pro",
 };
 
 export function resolveThemeId(themeOrTemplateId: string): string | undefined {

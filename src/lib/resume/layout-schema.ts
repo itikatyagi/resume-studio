@@ -24,6 +24,7 @@ export type LayoutStructure = z.infer<typeof layoutStructureSchema>;
 export const FONT_FAMILIES = [
   "inter",
   "roboto",
+  "montserrat",
   "georgia",
   "lato",
   "merriweather",
@@ -32,7 +33,7 @@ export const FONT_FAMILIES = [
 
 export type FontFamily = (typeof FONT_FAMILIES)[number];
 
-export const PROFILE_STYLES = ["banner", "centered", "minimal"] as const;
+export const PROFILE_STYLES = ["banner", "centered", "minimal", "itika"] as const;
 export type ProfileStyle = (typeof PROFILE_STYLES)[number];
 
 export const HEADING_STYLES = [
@@ -40,11 +41,15 @@ export const HEADING_STYLES = [
   "underline",
   "caps-plain",
   "left-bar",
+  "caps-icon",
 ] as const;
 export type HeadingStyle = (typeof HEADING_STYLES)[number];
 
-export const SKILL_STYLES = ["boxes", "comma", "dots"] as const;
+export const SKILL_STYLES = ["boxes", "comma", "dots", "itika-pills"] as const;
 export type SkillStyle = (typeof SKILL_STYLES)[number];
+
+export const COLUMN_ORDERS = ["sidebar-main", "main-sidebar"] as const;
+export type ColumnOrder = (typeof COLUMN_ORDERS)[number];
 
 export const layoutColorsSchema = z.object({
   accent: z.string(),
@@ -75,6 +80,7 @@ export const layoutConfigSchema = z.object({
   headingStyle: z.enum(HEADING_STYLES).optional(),
   skillStyle: z.enum(SKILL_STYLES).optional(),
   pagePaddingIn: z.number().min(0).max(1).optional(),
+  columnOrder: z.enum(COLUMN_ORDERS).optional(),
 });
 
 export type LayoutColors = z.infer<typeof layoutColorsSchema>;

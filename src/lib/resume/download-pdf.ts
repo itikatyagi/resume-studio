@@ -2,10 +2,76 @@
 
 import { jsPDF } from "jspdf";
 import { domToCanvas } from "modern-screenshot";
+import {
+  computeLetterPageSlices,
+  sliceHeightsPx,
+} from "@/lib/resume/page-breaks";
 
 function sanitizeFilename(name: string): string {
   const cleaned = name.replace(/[^\w\s-]/g, "").replace(/\s+/g, "-").toLowerCase();
   return cleaned || "resume";
+}
+
+type PdfLinkRect = {
+  href: string;
+  topPx: number;
+  leftPx: number;
+  widthPx: number;
+  heightPx: number;
+};
+
+/** Collect anchor positions relative to the resume root (canvas pixel space). */
+function collectPdfLinks(root: HTMLElement, scale: number): PdfLinkRect[] {
+  const rootRect = root.getBoundingClientRect();
+  const links: PdfLinkRect[] = [];
+
+  root.querySelectorAll("a[href]").forEach((node) => {
+    if (!(node instanceof HTMLAnchorElement)) return;
+    const href = node.href?.trim();
+    if (!href || href.startsWith("javascript:")) return;
+
+    const rect = node.getBoundingClientRect();
+    if (rect.width < 1 || rect.height < 1) return;
+
+    links.push({
+      href,
+      topPx: (rect.top - rootRect.top) * scale,
+      leftPx: (rect.left - rootRect.left) * scale,
+      widthPx: rect.width * scale,
+      heightPx: rect.height * scale,
+    });
+  });
+
+  return links;
+}
+
+function addPageLinkAnnotations(
+  pdf: jsPDF,
+  links: PdfLinkRect[],
+  pageTopPx: number,
+  sliceHeightPx: number,
+  canvasWidthPx: number,
+  pdfPageWidthPt: number,
+  pdfSliceHeightPt: number,
+): void {
+  const pageBottomPx = pageTopPx + sliceHeightPx;
+
+  for (const link of links) {
+    const linkBottomPx = link.topPx + link.heightPx;
+    if (linkBottomPx <= pageTopPx || link.topPx >= pageBottomPx) continue;
+
+    const topOnPagePx = Math.max(0, link.topPx - pageTopPx);
+    const bottomOnPagePx = Math.min(sliceHeightPx, linkBottomPx - pageTopPx);
+    const heightOnPagePx = bottomOnPagePx - topOnPagePx;
+    if (heightOnPagePx < 1) continue;
+
+    const xPt = (link.leftPx / canvasWidthPx) * pdfPageWidthPt;
+    const yPt = (topOnPagePx / sliceHeightPx) * pdfSliceHeightPt;
+    const wPt = (link.widthPx / canvasWidthPx) * pdfPageWidthPt;
+    const hPt = (heightOnPagePx / sliceHeightPx) * pdfSliceHeightPt;
+
+    pdf.link(xPt, yPt, wPt, hPt, { url: link.href });
+  }
 }
 
 /** Lock sidebar column height to the body row before screenshot capture. */
@@ -114,7 +180,12 @@ function trimCanvasBottom(canvas: HTMLCanvasElement, paddingPx = 8): HTMLCanvasE
   return trimmed;
 }
 
-async function canvasToPdf(canvas: HTMLCanvasElement, filename: string): Promise<void> {
+async function canvasToPdf(
+  canvas: HTMLCanvasElement,
+  filename: string,
+  sliceHeights?: number[],
+  links: PdfLinkRect[] = [],
+): Promise<void> {
   const trimmed = trimCanvasBottom(canvas);
   const pdf = new jsPDF({ unit: "pt", format: "letter", orientation: "portrait" });
   const pageWidth = pdf.internal.pageSize.getWidth();
@@ -123,14 +194,26 @@ async function canvasToPdf(canvas: HTMLCanvasElement, filename: string): Promise
   const pxPageHeight = Math.floor((trimmed.width * pageHeight) / pageWidth);
   const minSlicePx = 12;
 
-  let renderedHeight = 0;
-  let page = 0;
+  const plannedSlices =
+    sliceHeights && sliceHeights.length > 0
+      ? sliceHeights
+      : (() => {
+          const heights: number[] = [];
+          let y = 0;
+          while (y < trimmed.height - minSlicePx) {
+            heights.push(Math.min(pxPageHeight, trimmed.height - y));
+            y += heights[heights.length - 1]!;
+          }
+          return heights;
+        })();
 
-  while (renderedHeight < trimmed.height) {
+  let renderedHeight = 0;
+
+  for (let page = 0; page < plannedSlices.length; page++) {
     const remaining = trimmed.height - renderedHeight;
     if (remaining < minSlicePx) break;
 
-    const sliceHeight = Math.min(pxPageHeight, remaining);
+    const sliceHeight = Math.min(plannedSlices[page] ?? pxPageHeight, remaining);
     if (page > 0) pdf.addPage();
 
     const pageCanvas = document.createElement("canvas");
@@ -158,8 +241,17 @@ async function canvasToPdf(canvas: HTMLCanvasElement, filename: string): Promise
     const pdfSliceHeight = (sliceHeight * imgWidth) / trimmed.width;
     pdf.addImage(imgData, "JPEG", 0, 0, imgWidth, pdfSliceHeight);
 
+    addPageLinkAnnotations(
+      pdf,
+      links,
+      renderedHeight,
+      sliceHeight,
+      trimmed.width,
+      imgWidth,
+      pdfSliceHeight,
+    );
+
     renderedHeight += sliceHeight;
-    page += 1;
   }
 
   pdf.save(`${sanitizeFilename(filename)}.pdf`);
@@ -185,8 +277,9 @@ export async function downloadResumePdf(
         requestAnimationFrame(() => requestAnimationFrame(() => resolve()));
       });
 
+      const captureScale = 2;
       const canvas = await domToCanvas(element, {
-        scale: 2,
+        scale: captureScale,
         backgroundColor: "#ffffff",
         style: {
           margin: "0",
@@ -195,7 +288,14 @@ export async function downloadResumePdf(
       });
 
       extendSidebarBackground(canvas, element);
-      await canvasToPdf(canvas, filename);
+
+      const pdfLinks = collectPdfLinks(element, captureScale);
+
+      const contentWidthPx = element.getBoundingClientRect().width;
+      const slices = computeLetterPageSlices(element, contentWidthPx);
+      const heightsPx = sliceHeightsPx(slices, contentWidthPx, captureScale);
+
+      await canvasToPdf(canvas, filename, heightsPx, pdfLinks);
     } finally {
       restoreLayout();
     }
@@ -205,5 +305,8 @@ export async function downloadResumePdf(
 }
 
 export function findResumePageElement(root: ParentNode = document): HTMLElement | null {
-  return root.querySelector(".resume-page") as HTMLElement | null;
+  return (
+    (root.querySelector(".resume-page-pdf-source .resume-page") as HTMLElement | null) ??
+    (root.querySelector(".resume-page") as HTMLElement | null)
+  );
 }

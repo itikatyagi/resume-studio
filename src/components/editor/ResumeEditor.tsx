@@ -17,22 +17,26 @@ export function ResumeEditor({
 }: ResumeEditorProps) {
   return (
     <StoreHydration>
-      <div className="resume-editor-shell flex min-h-screen flex-col bg-zinc-100 print:bg-white">
+      <div className="resume-editor-shell flex h-dvh max-h-dvh flex-col overflow-hidden bg-zinc-100 print:h-auto print:max-h-none print:overflow-visible print:bg-white">
         <EditorToolbar onOpenImport={() => onImportOpenChange?.(true)} />
         <ImportResumeDialog
           open={importOpen}
           onClose={() => onImportOpenChange?.(false)}
         />
-        <div className="flex flex-1 overflow-hidden print:block">
-          <aside className="no-print flex w-full max-w-md shrink-0 flex-col border-r border-zinc-200 bg-white">
+        <div className="flex min-h-0 flex-1 overflow-hidden print:block print:overflow-visible">
+          <aside className="no-print flex min-h-0 w-full max-w-md shrink-0 flex-col overflow-hidden border-r border-zinc-200 bg-white">
             <EditorSidebar />
           </aside>
-          <main className="flex flex-1 flex-col overflow-y-auto p-6 print:overflow-visible print:bg-white print:p-0">
-            <p className="no-print mb-4 text-center text-sm text-zinc-500">
+          <main className="no-print flex min-h-0 flex-1 flex-col overflow-hidden p-6">
+            <p className="mb-4 shrink-0 text-center text-sm text-zinc-500">
               Live preview
             </p>
-            <div className="print-root mx-auto">
-              <ResumePreviewPane />
+            <div className="editor-preview-scroll min-h-0 flex-1 overflow-y-auto overscroll-y-contain">
+              <div className="editor-preview-canvas print-root">
+                <div className="editor-preview-frame">
+                  <ResumePreviewPane />
+                </div>
+              </div>
             </div>
           </main>
         </div>

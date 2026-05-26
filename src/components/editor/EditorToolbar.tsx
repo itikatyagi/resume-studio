@@ -83,7 +83,7 @@ export function EditorToolbar({ onOpenImport }: EditorToolbarProps) {
         <select
           value={activeTheme}
           onChange={(e) => applyTheme(e.target.value)}
-          className="max-w-[11rem] rounded-md border border-zinc-200 bg-zinc-50 px-2 py-1.5 text-sm focus:border-zinc-400 focus:outline-none"
+          className="max-w-[12rem] rounded-md border border-zinc-200 bg-zinc-50 px-2 py-1.5 text-sm focus:border-zinc-400 focus:outline-none"
         >
           {THEME_LIST.map((t) => (
             <option key={t.id} value={t.id}>
@@ -106,16 +106,21 @@ export function EditorToolbar({ onOpenImport }: EditorToolbarProps) {
           New
         </Button>
         <Button variant="outline" size="sm" onClick={handleExport}>
-          <Download className="size-4" />
-          Export
+          Export JSON
+        </Button>
+        <Button variant="outline" size="sm" asChild>
+          <Link href="/print" target="_blank">
+            <Printer className="size-4" />
+            Print
+          </Link>
         </Button>
         <Button size="sm" onClick={handleSavePdf} disabled={pdfLoading}>
           {pdfLoading ? (
             <Loader2 className="size-4 animate-spin" />
           ) : (
-            <Printer className="size-4" />
+            <Download className="size-4" />
           )}
-          {pdfLoading ? "Saving…" : "Save PDF"}
+          Save PDF
         </Button>
       </div>
     </header>

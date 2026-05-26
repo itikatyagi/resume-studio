@@ -72,11 +72,47 @@ export const CLASSIC_LAYOUT: LayoutConfig = {
   ],
 };
 
+/** Professional Red / Itika layout preset (generic renderer). */
+export const ITIKA_LAYOUT: LayoutConfig = {
+  structure: "header-sidebar-main",
+  sidebarWidthPercent: 38,
+  columnOrder: "main-sidebar",
+  showHeader: true,
+  themeId: "itika-pro",
+  typography: {
+    fontFamily: "montserrat",
+    baseSizePt: 10,
+    lineHeight: 1.38,
+  },
+  profileStyle: "itika",
+  headingStyle: "caps-icon",
+  skillStyle: "itika-pills",
+  pagePaddingIn: 0,
+  colors: {
+    accent: "#b84a4a",
+    headerBg: "#ffffff",
+    headerText: "#1a1a1a",
+    sidebarBg: "#ffffff",
+    sidebarText: "#333333",
+    mainText: "#1a1a1a",
+    mainMuted: "#c93a3a",
+  },
+  sidebarSections: [
+    "skills",
+    "languages",
+    "education",
+    "certifications",
+    "customSections",
+  ],
+  mainSections: ["experience", "projects"],
+};
+
 /** Legacy template id → default layout */
 export const LEGACY_TEMPLATE_LAYOUTS: Record<string, LayoutConfig> = {
   "novo-15-v1": NOVO_USER_LAYOUT,
   "default-v1": CLASSIC_LAYOUT,
   "universal-v1": NOVO_USER_LAYOUT,
+  "itika-v1": ITIKA_LAYOUT,
 };
 
 export function getDefaultLayoutForTemplate(templateId: string): LayoutConfig {

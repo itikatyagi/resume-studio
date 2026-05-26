@@ -1,5 +1,12 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono, Inter, Merriweather, Roboto } from "next/font/google";
+import {
+  Geist,
+  Geist_Mono,
+  Inter,
+  Merriweather,
+  Montserrat,
+  Roboto,
+} from "next/font/google";
 import "./globals.css";
 import { cn } from "@/lib/utils";
 
@@ -27,6 +34,12 @@ const merriweather = Merriweather({
   variable: "--font-merriweather",
 });
 
+const montserrat = Montserrat({
+  weight: ["400", "500", "600", "700"],
+  subsets: ["latin"],
+  variable: "--font-montserrat",
+});
+
 export const metadata: Metadata = {
   title: "Resume Studio",
   description: "Structured resume editor with live preview and PDF export",
@@ -47,6 +60,7 @@ export default function RootLayout({
         geistMono.variable,
         roboto.variable,
         merriweather.variable,
+        montserrat.variable,
         "font-sans",
         inter.variable,
       )}

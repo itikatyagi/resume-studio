@@ -11,6 +11,146 @@
   line-height: var(--resume-line-height, 1.45);
 }
 
+/* Grid children default to min-width:auto, which overflows and gets clipped in paged preview */
+.resume-page-universal .config-layout,
+.resume-page-universal .config-body,
+.resume-page-universal .config-sidebar,
+.resume-page-universal .config-main {
+  min-width: 0;
+}
+
+.resume-sidebar,
+.resume-page-universal .config-sidebar {
+  box-sizing: border-box;
+  padding: 0;
+}
+
+.resume-main,
+.resume-page-universal .config-main {
+  box-sizing: border-box;
+  padding: 0;
+}
+
+.resume-sidebar-inner {
+  box-sizing: border-box;
+  min-width: 0;
+  padding: var(--resume-sidebar-padding, 1.5rem 1.35rem);
+}
+
+.resume-main-inner {
+  box-sizing: border-box;
+  min-width: 0;
+  padding: var(--resume-main-padding, 1.5rem 1.65rem);
+}
+
+.resume-section,
+.config-header {
+  break-inside: avoid;
+  page-break-inside: avoid;
+}
+
+/* Editor live preview: true letter width, centered — not stretched edge-to-edge */
+@media screen {
+  .resume-editor-shell .editor-preview-canvas {
+    display: flex;
+    justify-content: center;
+    width: 100%;
+    min-height: 100%;
+    padding: 0 1.75rem 2rem;
+    box-sizing: border-box;
+  }
+
+  .resume-editor-shell .editor-preview-frame {
+    width: 8.5in;
+    max-width: 100%;
+    flex-shrink: 0;
+  }
+
+  .resume-editor-shell .editor-preview-frame .resume-page {
+    width: 100%;
+    max-width: none;
+    margin: 0;
+    min-height: auto !important;
+    box-shadow: none !important;
+  }
+
+  /* Hidden measure layer: content-driven height (no flex-1 collapse) */
+  .resume-editor-shell .resume-page-pdf-source .resume-page {
+    display: block !important;
+    min-height: auto !important;
+    height: auto !important;
+  }
+
+  .resume-editor-shell .resume-page-pdf-source .universal-layout,
+  .resume-editor-shell .resume-page-pdf-source .itika-layout-root,
+  .resume-editor-shell .resume-page-pdf-source .config-layout {
+    display: block !important;
+    flex: none !important;
+    min-height: 0 !important;
+    height: auto !important;
+  }
+
+  .resume-editor-shell .resume-page-pdf-source .config-body {
+    display: grid !important;
+    flex: none !important;
+    min-height: 0 !important;
+    height: auto !important;
+  }
+
+  .resume-editor-shell .resume-page-pdf-source .config-sidebar,
+  .resume-editor-shell .resume-page-pdf-source .config-main {
+    min-height: 0 !important;
+    height: auto !important;
+  }
+
+  /* Paged editor preview: clip windows (one card per PDF page) */
+  .resume-editor-shell .resume-page-slot {
+    flex-shrink: 0;
+    overflow: hidden;
+    contain: paint;
+  }
+
+  .resume-editor-shell .resume-page-slot .resume-page {
+    width: 8.5in !important;
+    max-width: 100% !important;
+    min-height: auto !important;
+    height: auto !important;
+    margin: 0 !important;
+    box-shadow: none !important;
+  }
+
+  /* Visible page slots: same natural-height rules as measure layer */
+  .resume-editor-shell .resume-page-slot .resume-page {
+    display: block !important;
+  }
+
+  .resume-editor-shell .resume-page-slot .universal-layout,
+  .resume-editor-shell .resume-page-slot .itika-layout-root,
+  .resume-editor-shell .resume-page-slot .config-layout {
+    display: block !important;
+    flex: none !important;
+    min-height: 0 !important;
+    height: auto !important;
+  }
+
+  .resume-editor-shell .resume-page-slot .config-body {
+    display: grid !important;
+    flex: none !important;
+    min-height: 0 !important;
+    height: auto !important;
+  }
+
+  .resume-editor-shell .resume-page-slot .config-sidebar,
+  .resume-editor-shell .resume-page-slot .config-main {
+    min-height: 0 !important;
+    height: auto !important;
+  }
+
+  .resume-editor-shell .resume-page-slice {
+    will-change: transform;
+  }
+}
+
 .resume-page-universal {
   padding: 0;
   display: flex;
@@ -92,7 +232,10 @@
   }
 
   .resume-editor-shell {
+    height: auto !important;
+    max-height: none !important;
     min-height: auto !important;
+    overflow: visible !important;
     background: white !important;
   }
 
@@ -153,13 +296,9 @@
     page-break-inside: avoid;
   }
 
-  .skills-section,
-  .summary-section,
-  .experience-section,
-  .projects-section,
-  .education-section {
-    break-inside: auto;
-    page-break-inside: auto;
+  .resume-section {
+    break-inside: avoid;
+    page-break-inside: avoid;
   }
 
   .skill-chip {

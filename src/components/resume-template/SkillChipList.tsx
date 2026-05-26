@@ -29,6 +29,18 @@ export function SkillChipList({
     );
   }
 
+  if (skillStyle === "itika-pills") {
+    return (
+      <div className="flex flex-wrap gap-1">
+        {items.map((skill, index) => (
+          <span key={`${skill}-${index}`} className="itika-skill-pill">
+            {skill}
+          </span>
+        ))}
+      </div>
+    );
+  }
+
   if (skillStyle === "dots") {
     return (
       <ul

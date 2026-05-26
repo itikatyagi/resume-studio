@@ -10,7 +10,7 @@ export function EditorSidebar() {
   const [tab, setTab] = useState<EditorTab>("content");
 
   return (
-    <div className="flex h-full flex-col">
+    <div className="flex h-full min-h-0 flex-col">
       <div className="no-print flex shrink-0 gap-1 border-b border-zinc-200 p-2">
         <button
           type="button"
@@ -35,7 +35,7 @@ export function EditorSidebar() {
           Layout
         </button>
       </div>
-      <div className="flex-1 overflow-y-auto p-4">
+      <div className="min-h-0 flex-1 overflow-y-auto overscroll-y-contain p-4">
         {tab === "content" ? <EditorSections /> : <LayoutPanel />}
       </div>
     </div>

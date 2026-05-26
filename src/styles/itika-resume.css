@@ -1,0 +1,212 @@
+/**
+ * Professional Red (itika-pro) theme — centered header, contact bar, split body.
+ */
+
+.resume-page-itika,
+.resume-page-universal.resume-page-itika,
+.resume-page-universal[data-theme="itika-pro"] {
+  --itika-accent: var(--resume-accent, #b84a4a);
+  --itika-bar-bg: #252525;
+  --itika-skill-bg: #7a7a7a;
+  --itika-skill-text: #ffffff;
+  --itika-icon: var(--resume-accent, #b84a4a);
+  font-family: var(--font-montserrat), Montserrat, var(--font-sans), system-ui,
+    sans-serif;
+  color: #1a1a1a;
+}
+
+.resume-page-itika .itika-header {
+  overflow: visible;
+  padding-bottom: 0;
+}
+
+.resume-page-itika .itika-header-block {
+  box-sizing: border-box;
+  overflow: visible;
+  padding-left: 0.14in;
+  width: 100%;
+}
+
+.resume-page-itika .itika-accent-text {
+  color: var(--itika-accent);
+}
+
+/* Name + title + summary: open top, sides + bottom border, rounded bottom corners */
+.resume-page-itika .itika-profile-frame {
+  border-bottom: 1px solid #1a1a1a;
+  border-left: 1px solid #1a1a1a;
+  border-radius: 0 0 0.55rem 0.55rem;
+  border-right: 1px solid #1a1a1a;
+  position: relative;
+}
+
+.resume-page-itika .itika-profile-frame::before,
+.resume-page-itika .itika-profile-frame::after {
+  background-color: #1a1a1a;
+  content: "";
+  height: 1px;
+  position: absolute;
+  top: 0;
+  width: 38%;
+}
+
+.resume-page-itika .itika-profile-frame::before {
+  left: 0;
+}
+
+.resume-page-itika .itika-profile-frame::after {
+  right: 0;
+}
+
+.resume-page-itika .itika-frame-accent-bar {
+  background-color: var(--itika-accent);
+  border-radius: 1px;
+  bottom: 0;
+  left: 0;
+  position: absolute;
+  top: 0;
+  width: 5px;
+}
+
+.resume-page-itika .itika-summary-inner {
+  color: #1a1a1a;
+}
+
+.resume-page-itika .itika-contact-bar {
+  background-color: var(--itika-bar-bg);
+  border-radius: 0 0 1.15rem 1.15rem;
+  color: #ffffff;
+  line-height: 1.35;
+  margin-top: 0;
+  width: 100%;
+}
+
+.resume-page-itika .itika-contact-bar a {
+  color: #ffffff;
+  text-decoration: none;
+}
+
+.resume-page-itika .itika-contact-icon {
+  color: var(--itika-icon);
+  flex-shrink: 0;
+}
+
+.resume-page-itika .itika-section-icon {
+  border: 1.5px solid #1a1a1a;
+  border-radius: 0.2rem;
+  color: var(--itika-accent);
+}
+
+.resume-page-itika .itika-section-heading {
+  margin-bottom: 0.65rem;
+}
+
+.resume-page-itika .itika-section-heading h2 {
+  color: #1a1a1a;
+  font-size: 10pt;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  line-height: 1.2;
+  text-transform: uppercase;
+}
+
+.resume-page-itika .itika-body {
+  padding-top: 0.85rem !important;
+}
+
+.resume-page-itika .resume-sidebar-inner,
+.resume-page-itika .resume-main-inner {
+  padding: 0 !important;
+}
+
+.resume-page-itika .config-sidebar,
+.resume-page-itika .config-main {
+  background-color: #ffffff !important;
+}
+
+.resume-page-itika .itika-skill-pill {
+  background-color: var(--itika-skill-bg);
+  border-radius: 0.28rem;
+  color: var(--itika-skill-text);
+  display: inline-block;
+  font-size: 8pt;
+  font-weight: 500;
+  line-height: 1.2;
+  padding: 0.16rem 0.38rem;
+}
+
+.resume-page-itika .itika-bullets {
+  color: #1a1a1a;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.resume-page-itika .itika-bullets li {
+  padding-left: 0.9rem;
+  position: relative;
+}
+
+.resume-page-itika .itika-bullets li::before {
+  background-color: var(--itika-accent);
+  border-radius: 50%;
+  content: "";
+  height: 5px;
+  left: 0;
+  position: absolute;
+  top: 0.55em;
+  width: 5px;
+}
+
+.resume-page-itika .itika-bullets li + li {
+  margin-top: 0.3rem;
+}
+
+.resume-page-itika .itika-exp-role-row {
+  margin-top: 0.05rem;
+}
+
+.resume-page-itika .itika-exp-dates {
+  color: var(--itika-accent);
+  font-size: 8.75pt;
+  font-weight: 400;
+}
+
+.resume-page-itika .itika-edu-meta {
+  width: 100%;
+}
+
+.resume-page-itika .experience-item .text-\[11\.5pt\] {
+  letter-spacing: -0.01em;
+}
+
+.resume-page-itika .itika-edu-dates,
+.resume-page-itika .itika-edu-location {
+  color: var(--itika-accent);
+  font-size: 8.75pt;
+}
+
+.resume-page-itika .itika-edu-location {
+  font-style: italic;
+}
+
+.resume-page-itika .itika-org-line {
+  color: #1a1a1a;
+  font-size: 9.25pt;
+  line-height: 1.55;
+}
+
+.resume-page-itika .resume-section {
+  margin-bottom: 1rem;
+}
+
+.resume-editor-shell .resume-page-slot .itika-page-footer {
+  bottom: 0.4rem;
+  color: #a8a8a8;
+  font-size: 8.25pt;
+  font-style: italic;
+  pointer-events: none;
+  position: absolute;
+  right: 0.55in;
+  z-index: 2;
+}

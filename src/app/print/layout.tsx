@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import "@/styles/resume-print.css";
+import "@/styles/itika-resume.css";
 
 export const metadata: Metadata = {
   title: "Resume",

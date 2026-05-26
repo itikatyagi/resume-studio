@@ -1,23 +1,35 @@
+"use client";
+
 import type { CSSProperties } from "react";
-import { hasProfileContent } from "@/lib/resume/formatters";
+import { hasProfileContent, hasSummaryContent } from "@/lib/resume/formatters";
+import { isItikaLayout } from "@/lib/resume/is-itika-layout";
 import {
   layoutToCssVariables,
+  resolvePagePaddingIn,
   resolveStyleOptions,
   resolveTypography,
 } from "@/lib/resume/layout-utils";
 import type { ResumeTemplateProps } from "../../types";
+import { ItikaProfileHeader } from "../../itika-ui";
 import { SectionBlocks } from "../../section-blocks";
 
-/** Universal config-driven resume layout — themes + browser edits drive all visuals. */
+/** Universal config-driven resume layout — themes + layoutConfig drive all visuals. */
 export function UniversalLayout({ content, layout }: ResumeTemplateProps) {
   const { profile } = content;
   const styles = resolveStyleOptions(layout);
   const cssVars = layoutToCssVariables(layout);
+  const itika = isItikaLayout(layout);
+  const columnOrder = layout.columnOrder ?? "sidebar-main";
+  const mainFirst = columnOrder === "main-sidebar";
 
   const showHeader =
     layout.showHeader &&
     hasProfileContent(profile) &&
-    (profile.fullName || profile.headline || profile.email || profile.phone);
+    (profile.fullName ||
+      profile.headline ||
+      profile.email ||
+      profile.phone ||
+      (itika && hasSummaryContent(content.summary)));
 
   const bodyStyle = {
     ...cssVars,
@@ -26,18 +38,23 @@ export function UniversalLayout({ content, layout }: ResumeTemplateProps) {
     lineHeight: cssVars["--resume-line-height"],
   } as CSSProperties;
 
+  const pagePad = resolvePagePaddingIn(layout);
+  const pagePadCss = `${pagePad}in`;
+
   if (layout.structure === "single-column") {
     return (
       <div
         className="config-layout universal-layout"
         style={{
           ...bodyStyle,
-          padding: `${styles.pagePaddingIn}in`,
+          padding: pagePadCss,
           color: layout.colors.mainText,
+          boxSizing: "border-box",
         }}
       >
         {showHeader && (
           <ProfileHeader
+            content={content}
             profile={profile}
             layout={layout}
             style={styles.profileStyle}
@@ -48,47 +65,86 @@ export function UniversalLayout({ content, layout }: ResumeTemplateProps) {
     );
   }
 
+  const bodyPadStyle: CSSProperties | undefined =
+    pagePad > 0
+      ? {
+          paddingLeft: pagePadCss,
+          paddingRight: pagePadCss,
+          paddingBottom: pagePadCss,
+          boxSizing: "border-box",
+        }
+      : undefined;
+
+  const gridColumns = itika
+    ? "minmax(0, 1.58fr) minmax(0, 1fr)"
+    : mainFirst
+      ? `1fr ${layout.sidebarWidthPercent}%`
+      : `${layout.sidebarWidthPercent}% 1fr`;
+
+  const sidebarColumn = (
+    <aside
+      className="config-sidebar resume-sidebar"
+      style={{
+        backgroundColor: layout.colors.sidebarBg,
+        color: layout.colors.sidebarText,
+        minHeight: "100%",
+      }}
+    >
+      <div className="resume-sidebar-inner">
+        <SectionBlocks content={content} layout={layout} variant="sidebar" />
+      </div>
+    </aside>
+  );
+
+  const mainColumn = (
+    <main
+      className="config-main resume-main"
+      style={{
+        color: layout.colors.mainText,
+      }}
+    >
+      <div className="resume-main-inner">
+        <SectionBlocks content={content} layout={layout} variant="main" />
+      </div>
+    </main>
+  );
+
   return (
     <div
-      className="config-layout universal-layout flex min-h-full flex-1 flex-col"
+      className={`config-layout universal-layout flex flex-col ${itika ? "itika-layout-root" : "min-h-full flex-1"}`}
       style={bodyStyle}
     >
       {showHeader && (
         <ProfileHeader
+          content={content}
           profile={profile}
           layout={layout}
           style={styles.profileStyle}
         />
       )}
       <div
-        className="config-body flex-1"
+        className={`config-body ${itika ? "itika-body" : "flex-1"}`}
         style={{
           display: "grid",
-          gridTemplateColumns: `${layout.sidebarWidthPercent}% 1fr`,
+          gridTemplateColumns: gridColumns,
           gridTemplateRows: "1fr",
           alignItems: "stretch",
+          gap: itika ? "1.1rem" : undefined,
+          padding: itika ? "0.75rem 0.5in 0.5in" : undefined,
+          ...bodyPadStyle,
         }}
       >
-        <aside
-          className="config-sidebar px-6 py-6"
-          style={{
-            backgroundColor: layout.colors.sidebarBg,
-            color: layout.colors.sidebarText,
-            minHeight: "100%",
-          }}
-        >
-          <SectionBlocks
-            content={content}
-            layout={layout}
-            variant="sidebar"
-          />
-        </aside>
-        <main
-          className="config-main px-7 py-6"
-          style={{ color: layout.colors.mainText }}
-        >
-          <SectionBlocks content={content} layout={layout} variant="main" />
-        </main>
+        {mainFirst ? (
+          <>
+            {mainColumn}
+            {sidebarColumn}
+          </>
+        ) : (
+          <>
+            {sidebarColumn}
+            {mainColumn}
+          </>
+        )}
       </div>
     </div>
   );
@@ -97,14 +153,20 @@ export function UniversalLayout({ content, layout }: ResumeTemplateProps) {
 export { UniversalLayout as ConfigurableNovoLayout };
 
 function ProfileHeader({
+  content,
   profile,
   layout,
   style,
 }: {
+  content: ResumeTemplateProps["content"];
   profile: ResumeTemplateProps["content"]["profile"];
   layout: ResumeTemplateProps["layout"];
-  style: "banner" | "centered" | "minimal";
+  style: "banner" | "centered" | "minimal" | "itika";
 }) {
+  if (style === "itika") {
+    return <ItikaProfileHeader content={content} layout={layout} />;
+  }
+
   const typo = resolveTypography(layout);
   const nameSize = `${typo.baseSizePt * 2.1}pt`;
   const subSize = `${typo.baseSizePt * 1.05}pt`;

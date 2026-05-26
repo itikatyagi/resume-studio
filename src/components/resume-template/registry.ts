@@ -10,7 +10,7 @@ const UNIVERSAL_TEMPLATE: Omit<TemplateDefinition, "id" | "name" | "description"
   };
 
 /**
- * All resumes use one universal renderer; visual variety comes from themes + layoutConfig.
+ * Single universal renderer — themes + layoutConfig control all visual variants.
  */
 export const TEMPLATE_REGISTRY: Record<TemplateId, TemplateDefinition> = {
   "universal-v1": {
@@ -22,7 +22,7 @@ export const TEMPLATE_REGISTRY: Record<TemplateId, TemplateDefinition> = {
   "novo-15-v1": {
     id: "novo-15-v1",
     name: "Professional Blue",
-    description: "Novoresume-style sidebar (legacy id → novo-blue theme)",
+    description: "Legacy id → novo-blue theme",
     referenceUrl:
       "https://novoresume.com/editor/resume/ace68500-5fe6-11ef-a2b4-2f978d0b172a",
     ...UNIVERSAL_TEMPLATE,
@@ -30,8 +30,15 @@ export const TEMPLATE_REGISTRY: Record<TemplateId, TemplateDefinition> = {
   "default-v1": {
     id: "default-v1",
     name: "Classic Serif",
-    description: "Single-column serif (legacy id → classic-serif theme)",
+    description: "Legacy id → classic-serif theme",
     ...UNIVERSAL_TEMPLATE,
+  },
+  "itika-v1": {
+    id: "itika-v1",
+    name: "Professional Red",
+    description: "Legacy id → itika-pro theme",
+    ...UNIVERSAL_TEMPLATE,
+    layoutConfigurable: false,
   },
 };
 

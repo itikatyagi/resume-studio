@@ -18,8 +18,10 @@ import type {
   SkillEntry,
 } from "@/lib/resume/schema";
 import type { LayoutSectionId } from "@/lib/resume/layout-schema";
+import { moveOrderedItem, sortByOrder } from "@/lib/resume/formatters";
 import { getContentEditorSectionOrder, getEffectiveLayout } from "@/lib/resume/layout-utils";
 import { createId, nextOrder, useResumeStore } from "@/lib/resume/store";
+import { EntryOrderActions } from "./EntryOrderActions";
 import {
   CollapsibleEntry,
   CollapsibleSectionCard,
@@ -52,9 +54,30 @@ function FieldRow({
   );
 }
 
-function ItemActions({ onRemove }: { onRemove: () => void }) {
+function ItemActions({
+  onRemove,
+  orderIndex,
+  orderTotal,
+  onMove,
+}: {
+  onRemove: () => void;
+  orderIndex?: number;
+  orderTotal?: number;
+  onMove?: (dir: -1 | 1) => void;
+}) {
   return (
-    <div className="flex justify-end">
+    <div className="flex flex-wrap items-center justify-between gap-2">
+      {orderIndex !== undefined &&
+      orderTotal !== undefined &&
+      onMove ? (
+        <EntryOrderActions
+          index={orderIndex}
+          total={orderTotal}
+          onMove={onMove}
+        />
+      ) : (
+        <span />
+      )}
       <Button variant="ghost" size="sm" onClick={onRemove} className="text-red-600">
         <Trash2 className="size-4" />
         Remove
@@ -209,19 +232,26 @@ function ProfileEditor() {
 function ExperienceEditor() {
   const experience = useResumeStore((s) => s.document.content.experience);
   const updateExperience = useResumeStore((s) => s.updateExperience);
-  const entryIds = experience.map((item) => item.id);
+  const sorted = sortByOrder(experience);
+  const entryIds = sorted.map((item) => item.id);
   const { isExpanded, toggle, onAddExpand } = useExpandedEntries(entryIds, {
     expandNewest: true,
   });
 
-  function updateItem(index: number, patch: Partial<ExperienceItem>) {
+  function updateItem(id: string, patch: Partial<ExperienceItem>) {
     updateExperience(
-      experience.map((item, i) => (i === index ? { ...item, ...patch } : item)),
+      experience.map((item) => (item.id === id ? { ...item, ...patch } : item)),
     );
   }
 
-  function removeItem(index: number) {
-    updateExperience(experience.filter((_, i) => i !== index));
+  function removeItem(id: string) {
+    updateExperience(experience.filter((item) => item.id !== id));
+  }
+
+  function moveItem(id: string, dir: -1 | 1) {
+    const index = sorted.findIndex((item) => item.id === id);
+    if (index < 0) return;
+    updateExperience(moveOrderedItem(experience, index, dir));
   }
 
   function addItem() {
@@ -251,7 +281,7 @@ function ExperienceEditor() {
       {experience.length === 0 && (
         <p className="text-sm text-zinc-500">No experience entries yet.</p>
       )}
-      {experience.map((item, index) => (
+      {sorted.map((item, index) => (
         <CollapsibleEntry
           key={item.id}
           title={experienceEntryTitle(item)}
@@ -263,13 +293,13 @@ function ExperienceEditor() {
             <FieldRow label="Job title">
               <Input
                 value={item.title}
-                onChange={(e) => updateItem(index, { title: e.target.value })}
+                onChange={(e) => updateItem(item.id, { title: e.target.value })}
               />
             </FieldRow>
             <FieldRow label="Company">
               <Input
                 value={item.company}
-                onChange={(e) => updateItem(index, { company: e.target.value })}
+                onChange={(e) => updateItem(item.id, { company: e.target.value })}
               />
             </FieldRow>
           </div>
@@ -277,7 +307,7 @@ function ExperienceEditor() {
             <Input
               value={item.projectName ?? ""}
               onChange={(e) =>
-                updateItem(index, { projectName: e.target.value })
+                updateItem(item.id, { projectName: e.target.value })
               }
               placeholder="e.g. Payment platform migration"
             />
@@ -285,21 +315,21 @@ function ExperienceEditor() {
           <FieldRow label="Location">
             <Input
               value={item.location ?? ""}
-              onChange={(e) => updateItem(index, { location: e.target.value })}
+              onChange={(e) => updateItem(item.id, { location: e.target.value })}
             />
           </FieldRow>
           <div className="grid gap-3 sm:grid-cols-3">
             <FieldRow label="Start date (YYYY or YYYY-MM)">
               <Input
                 value={item.startDate}
-                onChange={(e) => updateItem(index, { startDate: e.target.value })}
+                onChange={(e) => updateItem(item.id, { startDate: e.target.value })}
                 placeholder="2020-01"
               />
             </FieldRow>
             <FieldRow label="End date">
               <Input
                 value={item.endDate ?? ""}
-                onChange={(e) => updateItem(index, { endDate: e.target.value })}
+                onChange={(e) => updateItem(item.id, { endDate: e.target.value })}
                 placeholder="2023-06"
                 disabled={item.current}
               />
@@ -310,7 +340,7 @@ function ExperienceEditor() {
                   type="checkbox"
                   checked={item.current ?? false}
                   onChange={(e) =>
-                    updateItem(index, {
+                    updateItem(item.id, {
                       current: e.target.checked,
                       endDate: e.target.checked ? undefined : item.endDate,
                     })
@@ -322,9 +352,14 @@ function ExperienceEditor() {
           </div>
           <BulletsEditor
             bullets={item.bullets}
-            onChange={(bullets) => updateItem(index, { bullets })}
+            onChange={(bullets) => updateItem(item.id, { bullets })}
           />
-          <ItemActions onRemove={() => removeItem(index)} />
+          <ItemActions
+            orderIndex={index}
+            orderTotal={sorted.length}
+            onMove={(dir) => moveItem(item.id, dir)}
+            onRemove={() => removeItem(item.id)}
+          />
         </CollapsibleEntry>
       ))}
     </CollapsibleSectionCard>
@@ -334,15 +369,22 @@ function ExperienceEditor() {
 function EducationEditor() {
   const education = useResumeStore((s) => s.document.content.education);
   const updateEducation = useResumeStore((s) => s.updateEducation);
-  const entryIds = education.map((item) => item.id);
+  const sorted = sortByOrder(education);
+  const entryIds = sorted.map((item) => item.id);
   const { isExpanded, toggle, onAddExpand } = useExpandedEntries(entryIds, {
     expandNewest: true,
   });
 
-  function updateItem(index: number, patch: Partial<EducationItem>) {
+  function updateItem(id: string, patch: Partial<EducationItem>) {
     updateEducation(
-      education.map((item, i) => (i === index ? { ...item, ...patch } : item)),
+      education.map((item) => (item.id === id ? { ...item, ...patch } : item)),
     );
+  }
+
+  function moveItem(id: string, dir: -1 | 1) {
+    const index = sorted.findIndex((item) => item.id === id);
+    if (index < 0) return;
+    updateEducation(moveOrderedItem(education, index, dir));
   }
 
   function addItem() {
@@ -371,7 +413,7 @@ function EducationEditor() {
       {education.length === 0 && (
         <p className="text-sm text-zinc-500">No education entries yet.</p>
       )}
-      {education.map((item, index) => (
+      {sorted.map((item, index) => (
         <CollapsibleEntry
           key={item.id}
           title={item.institution.trim() || item.degree.trim() || "New school"}
@@ -382,21 +424,21 @@ function EducationEditor() {
           <FieldRow label="Institution">
             <Input
               value={item.institution}
-              onChange={(e) => updateItem(index, { institution: e.target.value })}
+              onChange={(e) => updateItem(item.id, { institution: e.target.value })}
             />
           </FieldRow>
           <div className="grid gap-3 sm:grid-cols-2">
             <FieldRow label="Degree">
               <Input
                 value={item.degree}
-                onChange={(e) => updateItem(index, { degree: e.target.value })}
+                onChange={(e) => updateItem(item.id, { degree: e.target.value })}
                 placeholder="B.S."
               />
             </FieldRow>
             <FieldRow label="Field of study">
               <Input
                 value={item.field ?? ""}
-                onChange={(e) => updateItem(index, { field: e.target.value })}
+                onChange={(e) => updateItem(item.id, { field: e.target.value })}
                 placeholder="Computer Science"
               />
             </FieldRow>
@@ -405,26 +447,29 @@ function EducationEditor() {
             <FieldRow label="Start date">
               <Input
                 value={item.startDate ?? ""}
-                onChange={(e) => updateItem(index, { startDate: e.target.value })}
+                onChange={(e) => updateItem(item.id, { startDate: e.target.value })}
               />
             </FieldRow>
             <FieldRow label="End date">
               <Input
                 value={item.endDate ?? ""}
-                onChange={(e) => updateItem(index, { endDate: e.target.value })}
+                onChange={(e) => updateItem(item.id, { endDate: e.target.value })}
               />
             </FieldRow>
           </div>
-          <FieldRow label="Details">
+          <FieldRow label="Details / location">
             <Input
               value={item.details ?? ""}
-              onChange={(e) => updateItem(index, { details: e.target.value })}
-              placeholder="GPA, honors, etc."
+              onChange={(e) => updateItem(item.id, { details: e.target.value })}
+              placeholder="GPA, honors, or location (e.g. India)"
             />
           </FieldRow>
           <ItemActions
+            orderIndex={index}
+            orderTotal={sorted.length}
+            onMove={(dir) => moveItem(item.id, dir)}
             onRemove={() =>
-              updateEducation(education.filter((_, i) => i !== index))
+              updateEducation(education.filter((e) => e.id !== item.id))
             }
           />
         </CollapsibleEntry>
@@ -436,15 +481,22 @@ function EducationEditor() {
 function SkillsEditor() {
   const skills = useResumeStore((s) => s.document.content.skills);
   const updateSkills = useResumeStore((s) => s.updateSkills);
-  const entryIds = skills.map((item) => item.id);
+  const sorted = sortByOrder(skills);
+  const entryIds = sorted.map((item) => item.id);
   const { isExpanded, toggle, onAddExpand } = useExpandedEntries(entryIds, {
     expandNewest: true,
   });
 
-  function updateItem(index: number, patch: Partial<SkillEntry>) {
+  function updateItem(id: string, patch: Partial<SkillEntry>) {
     updateSkills(
-      skills.map((item, i) => (i === index ? { ...item, ...patch } : item)),
+      skills.map((item) => (item.id === id ? { ...item, ...patch } : item)),
     );
+  }
+
+  function moveItem(id: string, dir: -1 | 1) {
+    const index = sorted.findIndex((item) => item.id === id);
+    if (index < 0) return;
+    updateSkills(moveOrderedItem(skills, index, dir));
   }
 
   function addGroup() {
@@ -465,7 +517,7 @@ function SkillsEditor() {
       onAdd={addGroup}
       addLabel="Add group"
     >
-      {skills.map((item, index) => (
+      {sorted.map((item, index) => (
         <CollapsibleEntry
           key={item.id}
           title={item.groupName?.trim() || "Skill group"}
@@ -480,20 +532,21 @@ function SkillsEditor() {
           <FieldRow label="Group name (optional)">
             <Input
               value={item.groupName ?? ""}
-              onChange={(e) => updateItem(index, { groupName: e.target.value })}
+              onChange={(e) => updateItem(item.id, { groupName: e.target.value })}
               placeholder="Languages"
             />
           </FieldRow>
           <FieldRow label="Skills">
             <SkillsTagInput
               skills={item.skills}
-              onChange={(skills) => updateItem(index, { skills })}
+              onChange={(skillList) => updateItem(item.id, { skills: skillList })}
             />
           </FieldRow>
           <ItemActions
-            onRemove={() =>
-              updateSkills(skills.filter((_, i) => i !== index))
-            }
+            orderIndex={index}
+            orderTotal={sorted.length}
+            onMove={(dir) => moveItem(item.id, dir)}
+            onRemove={() => updateSkills(skills.filter((e) => e.id !== item.id))}
           />
         </CollapsibleEntry>
       ))}
@@ -504,15 +557,22 @@ function SkillsEditor() {
 function ProjectsEditor() {
   const projects = useResumeStore((s) => s.document.content.projects);
   const updateProjects = useResumeStore((s) => s.updateProjects);
-  const entryIds = projects.map((item) => item.id);
+  const sorted = sortByOrder(projects);
+  const entryIds = sorted.map((item) => item.id);
   const { isExpanded, toggle, onAddExpand } = useExpandedEntries(entryIds, {
     expandNewest: true,
   });
 
-  function updateItem(index: number, patch: Partial<ProjectItem>) {
+  function updateItem(id: string, patch: Partial<ProjectItem>) {
     updateProjects(
-      projects.map((item, i) => (i === index ? { ...item, ...patch } : item)),
+      projects.map((item) => (item.id === id ? { ...item, ...patch } : item)),
     );
+  }
+
+  function moveItem(id: string, dir: -1 | 1) {
+    const index = sorted.findIndex((item) => item.id === id);
+    if (index < 0) return;
+    updateProjects(moveOrderedItem(projects, index, dir));
   }
 
   function addItem() {
@@ -534,7 +594,7 @@ function ProjectsEditor() {
       onAdd={addItem}
       addLabel="Add project"
     >
-      {projects.map((item, index) => (
+      {sorted.map((item, index) => (
         <CollapsibleEntry
           key={item.id}
           title={item.name.trim() || "New project"}
@@ -546,14 +606,14 @@ function ProjectsEditor() {
             <FieldRow label="Project name">
               <Input
                 value={item.name}
-                onChange={(e) => updateItem(index, { name: e.target.value })}
+                onChange={(e) => updateItem(item.id, { name: e.target.value })}
               />
             </FieldRow>
             <FieldRow label="URL (optional)">
               <Input
                 value={item.url ?? ""}
                 onChange={(e) =>
-                  updateItem(index, { url: e.target.value || undefined })
+                  updateItem(item.id, { url: e.target.value || undefined })
                 }
                 placeholder="https://"
               />
@@ -564,7 +624,7 @@ function ProjectsEditor() {
               <Input
                 value={item.startDate ?? ""}
                 onChange={(e) =>
-                  updateItem(index, {
+                  updateItem(item.id, {
                     startDate: e.target.value || undefined,
                   })
                 }
@@ -575,7 +635,7 @@ function ProjectsEditor() {
               <Input
                 value={item.endDate ?? ""}
                 onChange={(e) =>
-                  updateItem(index, {
+                  updateItem(item.id, {
                     endDate: e.target.value || undefined,
                   })
                 }
@@ -589,7 +649,7 @@ function ProjectsEditor() {
                   type="checkbox"
                   checked={item.current ?? false}
                   onChange={(e) =>
-                    updateItem(index, {
+                    updateItem(item.id, {
                       current: e.target.checked,
                       endDate: e.target.checked ? undefined : item.endDate,
                     })
@@ -602,17 +662,20 @@ function ProjectsEditor() {
           <FieldRow label="Description">
             <Textarea
               value={item.description ?? ""}
-              onChange={(e) => updateItem(index, { description: e.target.value })}
+              onChange={(e) => updateItem(item.id, { description: e.target.value })}
               rows={2}
             />
           </FieldRow>
           <BulletsEditor
             bullets={item.bullets}
-            onChange={(bullets) => updateItem(index, { bullets })}
+            onChange={(bullets) => updateItem(item.id, { bullets })}
           />
           <ItemActions
+            orderIndex={index}
+            orderTotal={sorted.length}
+            onMove={(dir) => moveItem(item.id, dir)}
             onRemove={() =>
-              updateProjects(projects.filter((_, i) => i !== index))
+              updateProjects(projects.filter((e) => e.id !== item.id))
             }
           />
         </CollapsibleEntry>
@@ -626,17 +689,24 @@ function CertificationsEditor() {
     (s) => s.document.content.certifications,
   );
   const updateCertifications = useResumeStore((s) => s.updateCertifications);
-  const entryIds = certifications.map((item) => item.id);
+  const sorted = sortByOrder(certifications);
+  const entryIds = sorted.map((item) => item.id);
   const { isExpanded, toggle, onAddExpand } = useExpandedEntries(entryIds, {
     expandNewest: true,
   });
 
-  function updateItem(index: number, patch: Partial<CertificationItem>) {
+  function updateItem(id: string, patch: Partial<CertificationItem>) {
     updateCertifications(
-      certifications.map((item, i) =>
-        i === index ? { ...item, ...patch } : item,
+      certifications.map((item) =>
+        item.id === id ? { ...item, ...patch } : item,
       ),
     );
+  }
+
+  function moveItem(id: string, dir: -1 | 1) {
+    const index = sorted.findIndex((item) => item.id === id);
+    if (index < 0) return;
+    updateCertifications(moveOrderedItem(certifications, index, dir));
   }
 
   function addItem() {
@@ -658,7 +728,7 @@ function CertificationsEditor() {
       onAdd={addItem}
       addLabel="Add"
     >
-      {certifications.map((item, index) => (
+      {sorted.map((item, index) => (
         <CollapsibleEntry
           key={item.id}
           title={item.name.trim() || "New certification"}
@@ -669,28 +739,31 @@ function CertificationsEditor() {
           <FieldRow label="Certification name">
             <Input
               value={item.name}
-              onChange={(e) => updateItem(index, { name: e.target.value })}
+              onChange={(e) => updateItem(item.id, { name: e.target.value })}
             />
           </FieldRow>
           <div className="grid gap-3 sm:grid-cols-2">
             <FieldRow label="Issuer">
               <Input
                 value={item.issuer ?? ""}
-                onChange={(e) => updateItem(index, { issuer: e.target.value })}
+                onChange={(e) => updateItem(item.id, { issuer: e.target.value })}
               />
             </FieldRow>
             <FieldRow label="Date">
               <Input
                 value={item.date ?? ""}
-                onChange={(e) => updateItem(index, { date: e.target.value })}
+                onChange={(e) => updateItem(item.id, { date: e.target.value })}
                 placeholder="2022-09"
               />
             </FieldRow>
           </div>
           <ItemActions
+            orderIndex={index}
+            orderTotal={sorted.length}
+            onMove={(dir) => moveItem(item.id, dir)}
             onRemove={() =>
               updateCertifications(
-                certifications.filter((_, i) => i !== index),
+                certifications.filter((e) => e.id !== item.id),
               )
             }
           />
@@ -703,15 +776,22 @@ function CertificationsEditor() {
 function LanguagesEditor() {
   const languages = useResumeStore((s) => s.document.content.languages);
   const updateLanguages = useResumeStore((s) => s.updateLanguages);
-  const entryIds = languages.map((item) => item.id);
+  const sorted = sortByOrder(languages);
+  const entryIds = sorted.map((item) => item.id);
   const { isExpanded, toggle, onAddExpand } = useExpandedEntries(entryIds, {
     expandNewest: true,
   });
 
-  function updateItem(index: number, patch: Partial<LanguageItem>) {
+  function updateItem(id: string, patch: Partial<LanguageItem>) {
     updateLanguages(
-      languages.map((item, i) => (i === index ? { ...item, ...patch } : item)),
+      languages.map((item) => (item.id === id ? { ...item, ...patch } : item)),
     );
+  }
+
+  function moveItem(id: string, dir: -1 | 1) {
+    const index = sorted.findIndex((item) => item.id === id);
+    if (index < 0) return;
+    updateLanguages(moveOrderedItem(languages, index, dir));
   }
 
   function addItem() {
@@ -732,7 +812,7 @@ function LanguagesEditor() {
       onAdd={addItem}
       addLabel="Add"
     >
-      {languages.map((item, index) => (
+      {sorted.map((item, index) => (
         <CollapsibleEntry
           key={item.id}
           title={item.language.trim() || "New language"}
@@ -744,20 +824,23 @@ function LanguagesEditor() {
           <FieldRow label="Language">
             <Input
               value={item.language}
-              onChange={(e) => updateItem(index, { language: e.target.value })}
+              onChange={(e) => updateItem(item.id, { language: e.target.value })}
             />
           </FieldRow>
           <FieldRow label="Proficiency">
             <Input
               value={item.proficiency ?? ""}
-              onChange={(e) => updateItem(index, { proficiency: e.target.value })}
+              onChange={(e) => updateItem(item.id, { proficiency: e.target.value })}
               placeholder="Native, Fluent, etc."
             />
           </FieldRow>
           <div className="sm:col-span-2">
             <ItemActions
+              orderIndex={index}
+              orderTotal={sorted.length}
+              onMove={(dir) => moveItem(item.id, dir)}
               onRemove={() =>
-                updateLanguages(languages.filter((_, i) => i !== index))
+                updateLanguages(languages.filter((e) => e.id !== item.id))
               }
             />
           </div>
@@ -771,17 +854,24 @@ function LanguagesEditor() {
 function CustomSectionsEditor() {
   const customSections = useResumeStore((s) => s.document.content.customSections);
   const updateCustomSections = useResumeStore((s) => s.updateCustomSections);
-  const entryIds = customSections.map((item) => item.id);
+  const sorted = sortByOrder(customSections);
+  const entryIds = sorted.map((item) => item.id);
   const { isExpanded, toggle, onAddExpand } = useExpandedEntries(entryIds, {
     expandNewest: true,
   });
 
-  function updateItem(index: number, patch: Partial<CustomSection>) {
+  function updateItem(id: string, patch: Partial<CustomSection>) {
     updateCustomSections(
-      customSections.map((item, i) =>
-        i === index ? { ...item, ...patch } : item,
+      customSections.map((item) =>
+        item.id === id ? { ...item, ...patch } : item,
       ),
     );
+  }
+
+  function moveItem(id: string, dir: -1 | 1) {
+    const index = sorted.findIndex((item) => item.id === id);
+    if (index < 0) return;
+    updateCustomSections(moveOrderedItem(customSections, index, dir));
   }
 
   function addItem() {
@@ -802,7 +892,7 @@ function CustomSectionsEditor() {
       onAdd={addItem}
       addLabel="Add"
     >
-      {customSections.map((item, index) => (
+      {sorted.map((item, index) => (
         <CollapsibleEntry
           key={item.id}
           title={item.title.trim() || "Custom section"}
@@ -812,20 +902,23 @@ function CustomSectionsEditor() {
           <FieldRow label="Section title">
             <Input
               value={item.title}
-              onChange={(e) => updateItem(index, { title: e.target.value })}
+              onChange={(e) => updateItem(item.id, { title: e.target.value })}
             />
           </FieldRow>
           <FieldRow label="Content">
             <Textarea
               value={item.content}
-              onChange={(e) => updateItem(index, { content: e.target.value })}
+              onChange={(e) => updateItem(item.id, { content: e.target.value })}
               rows={4}
             />
           </FieldRow>
           <ItemActions
+            orderIndex={index}
+            orderTotal={sorted.length}
+            onMove={(dir) => moveItem(item.id, dir)}
             onRemove={() =>
               updateCustomSections(
-                customSections.filter((_, i) => i !== index),
+                customSections.filter((e) => e.id !== item.id),
               )
             }
           />

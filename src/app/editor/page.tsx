@@ -1,6 +1,7 @@
 import { Suspense } from "react";
 import { EditorShell } from "@/components/editor/EditorShell";
 import "@/styles/resume-print.css";
+import "@/styles/itika-resume.css";
 
 export const metadata = {
   title: "Editor — Resume Studio",

@@ -39,8 +39,49 @@ export function formatDateRange(
   return `${startFormatted} – ${endFormatted}`;
 }
 
+/** MM/YYYY (e.g. 04/2025) for Professional Red theme */
+export function formatDateNumeric(date?: string): string {
+  if (!date) return "";
+  const match = date.match(/^(\d{4})(?:-(\d{2}))?$/);
+  if (!match) return date;
+  const [, year, month] = match;
+  if (!month) return year;
+  return `${month}/${year}`;
+}
+
+export function formatDateRangeNumeric(
+  start?: string,
+  end?: string,
+  current?: boolean,
+): string {
+  const startFormatted = formatDateNumeric(start);
+  if (!startFormatted) return "";
+  if (current) return `${startFormatted} - Present`;
+  const endFormatted = formatDateNumeric(end);
+  if (!endFormatted) return startFormatted;
+  return `${startFormatted} - ${endFormatted}`;
+}
+
 export function sortByOrder<T extends { order: number }>(items: T[]): T[] {
   return [...items].sort((a, b) => a.order - b.order);
+}
+
+/** Swap order with the adjacent entry (for editor up/down controls). */
+export function moveOrderedItem<T extends { id: string; order: number }>(
+  items: T[],
+  index: number,
+  dir: -1 | 1,
+): T[] {
+  const sorted = sortByOrder(items);
+  const target = index + dir;
+  if (target < 0 || target >= sorted.length) return items;
+  const current = sorted[index];
+  const neighbor = sorted[target];
+  return items.map((item) => {
+    if (item.id === current.id) return { ...item, order: neighbor.order };
+    if (item.id === neighbor.id) return { ...item, order: current.order };
+    return item;
+  });
 }
 
 function hasText(value?: string): boolean {

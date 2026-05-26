@@ -1,3 +1,4 @@
+import { getDefaultLayoutForTemplate } from "./layout-presets";
 import { getThemeLayout } from "./themes";
 import {
   resumeDocumentSchema,
@@ -177,5 +178,50 @@ export function createSampleResume(): ResumeDocument {
       },
     ],
     customSections: [],
+  });
+}
+
+/** Sample content for the Professional Red (Itika) template preview. */
+export function createItikaSampleResume(): ResumeDocument {
+  const now = new Date().toISOString();
+  const sample = createSampleResume();
+
+  return resumeDocumentSchema.parse({
+    ...sample,
+    templateId: "universal-v1",
+    layoutConfig: getDefaultLayoutForTemplate("itika-v1"),
+    meta: {
+      ...sample.meta,
+      title: "Professional Red Sample",
+      updatedAt: now,
+    },
+    content: {
+      ...sample.content,
+      profile: {
+        fullName: "Itika Tyagi",
+        headline: "Senior Software Engineer",
+        email: "itikatyagi60@gmail.com",
+        phone: "+(44) 7466011724",
+        location: "Wembley, Greater London, UK",
+        links: [
+          {
+            id: "01111111-1111-4111-8111-111111111111",
+            label: "linkedin.com/in/itika-tyagi",
+            url: "https://linkedin.com/in/itika-tyagi-461a9a11b",
+          },
+        ],
+      },
+      summary:
+        "Senior software engineer with **8 years of experience** building scalable systems. Holds a **5-year dependent UK work visa** and can **join immediately**.",
+      customSections: [
+        {
+          id: "a3333333-3333-4333-8333-333333333333",
+          order: 0,
+          title: "Organizations",
+          content:
+            "Control Now (12/2025 - Present)\nBarclays (03/2021 - 11/2025)",
+        },
+      ],
+    },
   });
 }

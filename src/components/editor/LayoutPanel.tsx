@@ -15,6 +15,7 @@ import {
   getEffectiveLayout,
   resolveTypography,
 } from "@/lib/resume/layout-utils";
+import { isItikaLayout } from "@/lib/resume/is-itika-layout";
 import { LayoutSectionOrder } from "./LayoutSectionOrder";
 import { THEME_LIST } from "@/lib/resume/themes";
 import { useResumeStore } from "@/lib/resume/store";
@@ -27,6 +28,7 @@ export function LayoutPanel() {
 
   const layout = getEffectiveLayout(document);
   const typo = resolveTypography(layout);
+  const isItika = isItikaLayout(layout);
 
   function applyLayout(patch: Partial<LayoutConfig>) {
     updateLayoutConfig(patch);
@@ -34,14 +36,29 @@ export function LayoutPanel() {
 
   return (
     <div className="space-y-4">
+      {isItika && (
+        <Card className="border-rose-100 bg-rose-50/40">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-base">Professional Red</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-2 text-xs text-zinc-600">
+            <p>
+              Centered header, summary box, and contact bar stay fixed. Use{" "}
+              <strong className="font-medium text-zinc-800">Sections</strong> below to
+              reorder or move blocks between columns. Use{" "}
+              <strong className="font-medium text-zinc-800">Project name</strong> per job
+              for the large title line.
+            </p>
+          </CardContent>
+        </Card>
+      )}
       <Card>
         <CardHeader className="pb-3">
           <CardTitle className="text-base">Themes</CardTitle>
         </CardHeader>
         <CardContent>
           <p className="mb-3 text-xs text-zinc-500">
-            One universal template — pick a starting theme, then customize
-            everything below.
+            One universal template — pick a theme, then customize layout below.
           </p>
           <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
             {THEME_LIST.map((theme) => {
@@ -222,6 +239,7 @@ export function LayoutPanel() {
                 <option value="banner">Colored banner</option>
                 <option value="centered">Centered</option>
                 <option value="minimal">Minimal</option>
+                {isItika && <option value="itika">Professional Red header</option>}
               </select>
             </div>
             <div>
@@ -239,6 +257,7 @@ export function LayoutPanel() {
                 <option value="underline">Underline</option>
                 <option value="caps-plain">Caps plain</option>
                 <option value="left-bar">Left accent bar</option>
+                {isItika && <option value="caps-icon">Caps + icon</option>}
               </select>
             </div>
             <div className="col-span-2">
@@ -255,6 +274,7 @@ export function LayoutPanel() {
                 <option value="boxes">Boxed tags</option>
                 <option value="comma">Comma list</option>
                 <option value="dots">Bullet list</option>
+                {isItika && <option value="itika-pills">Grey pills</option>}
               </select>
             </div>
           </div>

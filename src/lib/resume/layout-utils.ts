@@ -22,12 +22,22 @@ export const SECTION_LABELS: Record<LayoutSectionId, string> = {
   customSections: "Custom sections",
 };
 import { getDefaultLayoutForTemplate } from "./layout-presets";
-import { getThemeLayout, resolveThemeId } from "./themes";
-import type { ResumeDocument, TemplateId } from "./schema";
+import {
+  getThemeLayout,
+  LEGACY_TEMPLATE_TO_THEME,
+  resolveThemeId,
+} from "./themes";
+import { TEMPLATE_IDS, type ResumeDocument, type TemplateId } from "./schema";
+
+function isTemplateId(value: string): value is TemplateId {
+  return (TEMPLATE_IDS as readonly string[]).includes(value);
+}
 
 export const FONT_STACKS: Record<FontFamily, string> = {
   inter: 'var(--font-sans), Inter, system-ui, sans-serif',
   roboto: 'var(--font-roboto), Roboto, "Segoe UI", system-ui, sans-serif',
+  montserrat:
+    'var(--font-montserrat), Montserrat, var(--font-sans), system-ui, sans-serif',
   georgia: 'Georgia, "Times New Roman", Times, serif',
   lato: '"Lato", var(--font-inter), system-ui, sans-serif',
   merriweather: 'var(--font-merriweather), Merriweather, Georgia, serif',
@@ -47,11 +57,16 @@ export function resolveStyleOptions(layout: LayoutConfig) {
   };
 }
 
+export function resolvePagePaddingIn(layout: LayoutConfig): number {
+  return resolveStyleOptions(layout).pagePaddingIn;
+}
+
 export function getEffectiveLayout(document: ResumeDocument): LayoutConfig {
   const templatePreset = getDefaultLayoutForTemplate(document.templateId);
-  const base = document.layoutConfig?.themeId
-    ? getThemeLayout(document.layoutConfig.themeId)
-    : templatePreset;
+  const themeId =
+    document.layoutConfig?.themeId ??
+    LEGACY_TEMPLATE_TO_THEME[document.templateId];
+  const base = themeId ? getThemeLayout(themeId) : templatePreset;
   const overrides: Partial<LayoutConfig> = document.layoutConfig ?? {};
 
   const merged: LayoutConfig = {
@@ -99,6 +114,9 @@ export function layoutToCssVariables(
     "--resume-font-family": FONT_STACKS[typo.fontFamily],
     "--resume-font-size": `${typo.baseSizePt}pt`,
     "--resume-line-height": String(typo.lineHeight),
+    "--resume-page-padding": `${resolvePagePaddingIn(layout)}in`,
+    "--resume-sidebar-padding": "1.5rem 1.35rem",
+    "--resume-main-padding": "1.5rem 1.65rem",
   };
 }
 
@@ -119,11 +137,16 @@ export function applyTemplatePreset(
 ): ResumeDocument {
   const themeId = resolveThemeId(templateOrThemeId);
   if (themeId) return applyThemeToDocument(document, themeId);
-  return {
-    ...document,
-    templateId: document.templateId,
-    layoutConfig: getDefaultLayoutForTemplate(templateOrThemeId),
-  };
+
+  if (isTemplateId(templateOrThemeId)) {
+    return {
+      ...document,
+      templateId: "universal-v1",
+      layoutConfig: getDefaultLayoutForTemplate(templateOrThemeId),
+    };
+  }
+
+  return document;
 }
 
 export function moveSectionInList<T>(
