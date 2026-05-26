@@ -74,33 +74,33 @@
     box-shadow: none !important;
   }
 
-  /* Hidden measure layer: content-driven height (no flex-1 collapse) */
+  /* Hidden measure/export layer: keep the same full-page layout as the visible preview. */
   .resume-editor-shell .resume-page-pdf-source .resume-page {
-    display: block !important;
-    min-height: auto !important;
+    display: flex !important;
+    min-height: 11in !important;
     height: auto !important;
   }
 
   .resume-editor-shell .resume-page-pdf-source .universal-layout,
   .resume-editor-shell .resume-page-pdf-source .itika-layout-root,
   .resume-editor-shell .resume-page-pdf-source .config-layout {
-    display: block !important;
-    flex: none !important;
-    min-height: 0 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    flex: 1 1 auto !important;
+    min-height: 11in !important;
     height: auto !important;
   }
 
   .resume-editor-shell .resume-page-pdf-source .config-body {
     display: grid !important;
-    flex: none !important;
+    flex: 1 1 auto !important;
     min-height: 0 !important;
     height: auto !important;
   }
 
-  .resume-editor-shell .resume-page-pdf-source .config-sidebar,
-  .resume-editor-shell .resume-page-pdf-source .config-main {
-    min-height: 0 !important;
-    height: auto !important;
+  .resume-editor-shell .resume-page-pdf-source .config-sidebar {
+    min-height: 100% !important;
+    height: 100% !important;
   }
 
   /* Paged editor preview: clip windows (one card per PDF page) */
@@ -119,31 +119,32 @@
     box-shadow: none !important;
   }
 
-  /* Visible page slots: same natural-height rules as measure layer */
+  /* Visible page slots: keep full letter-height columns, then clip each page window. */
   .resume-editor-shell .resume-page-slot .resume-page {
-    display: block !important;
+    display: flex !important;
+    min-height: 11in !important;
   }
 
   .resume-editor-shell .resume-page-slot .universal-layout,
   .resume-editor-shell .resume-page-slot .itika-layout-root,
   .resume-editor-shell .resume-page-slot .config-layout {
-    display: block !important;
-    flex: none !important;
-    min-height: 0 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    flex: 1 1 auto !important;
+    min-height: 11in !important;
     height: auto !important;
   }
 
   .resume-editor-shell .resume-page-slot .config-body {
     display: grid !important;
-    flex: none !important;
+    flex: 1 1 auto !important;
     min-height: 0 !important;
     height: auto !important;
   }
 
-  .resume-editor-shell .resume-page-slot .config-sidebar,
-  .resume-editor-shell .resume-page-slot .config-main {
-    min-height: 0 !important;
-    height: auto !important;
+  .resume-editor-shell .resume-page-slot .config-sidebar {
+    min-height: 100% !important;
+    height: 100% !important;
   }
 
   .resume-editor-shell .resume-page-slice {
