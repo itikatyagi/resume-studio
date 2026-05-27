@@ -1,10 +1,11 @@
 "use client";
 
 import { useState } from "react";
+import { AtsScorePanel } from "./AtsScorePanel";
 import { EditorSections } from "./EditorSections";
 import { LayoutPanel } from "./LayoutPanel";
 
-type EditorTab = "content" | "layout";
+type EditorTab = "content" | "layout" | "ats";
 
 export function EditorSidebar() {
   const [tab, setTab] = useState<EditorTab>("content");
@@ -34,9 +35,22 @@ export function EditorSidebar() {
         >
           Layout
         </button>
+        <button
+          type="button"
+          onClick={() => setTab("ats")}
+          className={`flex-1 rounded-md px-3 py-1.5 text-sm font-medium ${
+            tab === "ats"
+              ? "bg-zinc-900 text-white"
+              : "text-zinc-600 hover:bg-zinc-100"
+          }`}
+        >
+          ATS
+        </button>
       </div>
       <div className="min-h-0 flex-1 overflow-y-auto overscroll-y-contain p-4">
-        {tab === "content" ? <EditorSections /> : <LayoutPanel />}
+        {tab === "content" && <EditorSections />}
+        {tab === "layout" && <LayoutPanel />}
+        {tab === "ats" && <AtsScorePanel />}
       </div>
     </div>
   );
