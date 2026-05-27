@@ -1,4 +1,5 @@
 import type {
+  DensityMode,
   FontFamily,
   LayoutConfig,
   LayoutSectionId,
@@ -54,6 +55,7 @@ export function resolveStyleOptions(layout: LayoutConfig) {
     headingStyle: layout.headingStyle ?? DEFAULT_STYLE_OPTIONS.headingStyle,
     skillStyle: layout.skillStyle ?? DEFAULT_STYLE_OPTIONS.skillStyle,
     pagePaddingIn: layout.pagePaddingIn ?? DEFAULT_STYLE_OPTIONS.pagePaddingIn,
+    density: layout.density ?? DEFAULT_STYLE_OPTIONS.density,
   };
 }
 
@@ -92,6 +94,8 @@ export function getEffectiveLayout(document: ResumeDocument): LayoutConfig {
       overrides.pagePaddingIn ??
       base.pagePaddingIn ??
       DEFAULT_STYLE_OPTIONS.pagePaddingIn,
+    density:
+      overrides.density ?? base.density ?? DEFAULT_STYLE_OPTIONS.density,
     sidebarSections: overrides.sidebarSections ?? base.sidebarSections,
     mainSections: overrides.mainSections ?? base.mainSections,
   };
@@ -99,10 +103,85 @@ export function getEffectiveLayout(document: ResumeDocument): LayoutConfig {
   return layoutConfigSchema.parse(merged);
 }
 
+const DENSITY_TOKENS: Record<
+  DensityMode,
+  {
+    sectionGap: string;
+    entryGap: string;
+    bulletGap: string;
+    skillGap: string;
+    skillPaddingY: string;
+    skillPaddingX: string;
+    skillFontSize: string;
+    sidebarPadding: string;
+    mainPadding: string;
+    itikaBodyPadding: string;
+    itikaSectionGap: string;
+    itikaBulletGap: string;
+    itikaSkillPaddingY: string;
+    itikaSkillPaddingX: string;
+    itikaSkillFontSize: string;
+  }
+> = {
+  comfortable: {
+    sectionGap: "1.25rem",
+    entryGap: "1rem",
+    bulletGap: "0.125rem",
+    skillGap: "0.375rem",
+    skillPaddingY: "0.25rem",
+    skillPaddingX: "0.5rem",
+    skillFontSize: "0.9em",
+    sidebarPadding: "1.5rem 1.35rem",
+    mainPadding: "1.5rem 1.65rem",
+    itikaBodyPadding: "0.75rem 0.5in 0.5in",
+    itikaSectionGap: "1rem",
+    itikaBulletGap: "0.3rem",
+    itikaSkillPaddingY: "0.16rem",
+    itikaSkillPaddingX: "0.38rem",
+    itikaSkillFontSize: "8pt",
+  },
+  compact: {
+    sectionGap: "0.85rem",
+    entryGap: "0.65rem",
+    bulletGap: "0.05rem",
+    skillGap: "0.25rem",
+    skillPaddingY: "0.18rem",
+    skillPaddingX: "0.38rem",
+    skillFontSize: "0.82em",
+    sidebarPadding: "1.1rem 1rem",
+    mainPadding: "1.1rem 1.2rem",
+    itikaBodyPadding: "0.55rem 0.42in 0.38in",
+    itikaSectionGap: "0.72rem",
+    itikaBulletGap: "0.18rem",
+    itikaSkillPaddingY: "0.12rem",
+    itikaSkillPaddingX: "0.3rem",
+    itikaSkillFontSize: "7.4pt",
+  },
+  tight: {
+    sectionGap: "0.6rem",
+    entryGap: "0.45rem",
+    bulletGap: "0",
+    skillGap: "0.18rem",
+    skillPaddingY: "0.12rem",
+    skillPaddingX: "0.3rem",
+    skillFontSize: "0.76em",
+    sidebarPadding: "0.85rem 0.8rem",
+    mainPadding: "0.85rem 0.95rem",
+    itikaBodyPadding: "0.42rem 0.34in 0.32in",
+    itikaSectionGap: "0.52rem",
+    itikaBulletGap: "0.1rem",
+    itikaSkillPaddingY: "0.09rem",
+    itikaSkillPaddingX: "0.25rem",
+    itikaSkillFontSize: "6.9pt",
+  },
+};
+
 export function layoutToCssVariables(
   layout: LayoutConfig,
 ): Record<string, string> {
   const typo = resolveTypography(layout);
+  const density = resolveStyleOptions(layout).density;
+  const tokens = DENSITY_TOKENS[density];
   return {
     "--resume-accent": layout.colors.accent,
     "--resume-header-bg": layout.colors.headerBg,
@@ -115,8 +194,21 @@ export function layoutToCssVariables(
     "--resume-font-size": `${typo.baseSizePt}pt`,
     "--resume-line-height": String(typo.lineHeight),
     "--resume-page-padding": `${resolvePagePaddingIn(layout)}in`,
-    "--resume-sidebar-padding": "1.5rem 1.35rem",
-    "--resume-main-padding": "1.5rem 1.65rem",
+    "--resume-sidebar-padding": tokens.sidebarPadding,
+    "--resume-main-padding": tokens.mainPadding,
+    "--resume-section-gap": tokens.sectionGap,
+    "--resume-entry-gap": tokens.entryGap,
+    "--resume-bullet-gap": tokens.bulletGap,
+    "--resume-skill-gap": tokens.skillGap,
+    "--resume-skill-padding-y": tokens.skillPaddingY,
+    "--resume-skill-padding-x": tokens.skillPaddingX,
+    "--resume-skill-font-size": tokens.skillFontSize,
+    "--itika-body-padding": tokens.itikaBodyPadding,
+    "--itika-section-gap": tokens.itikaSectionGap,
+    "--itika-bullet-gap": tokens.itikaBulletGap,
+    "--itika-skill-padding-y": tokens.itikaSkillPaddingY,
+    "--itika-skill-padding-x": tokens.itikaSkillPaddingX,
+    "--itika-skill-font-size": tokens.itikaSkillFontSize,
   };
 }
 

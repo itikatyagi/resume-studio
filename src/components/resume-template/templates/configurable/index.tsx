@@ -130,7 +130,9 @@ export function UniversalLayout({ content, layout }: ResumeTemplateProps) {
           gridTemplateRows: "1fr",
           alignItems: "stretch",
           gap: itika ? "1.1rem" : undefined,
-          padding: itika ? "0.75rem 0.5in 0.5in" : undefined,
+          padding: itika
+            ? "var(--itika-body-padding, 0.75rem 0.5in 0.5in)"
+            : undefined,
           ...bodyPadStyle,
         }}
       >

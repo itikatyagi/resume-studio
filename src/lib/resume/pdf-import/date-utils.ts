@@ -64,8 +64,20 @@ export function normalizeDateToken(token: string): string | undefined {
   return undefined;
 }
 
-const DATE_RANGE_RE =
-  /\s*((?:Jan(?:uary)?|Feb(?:ruary)?|Mar(?:ch)?|Apr(?:il)?|May|Jun(?:e)?|Jul(?:y)?|Aug(?:ust)?|Sep(?:t(?:ember)?)?|Oct(?:ober)?|Nov(?:ember)?|Dec(?:ember)?)\.?\s+\d{4}|\d{1,2}\/\d{4}|\d{4}(?:-\d{2})?)\s*[-–—]\s*((?:Present|Current|Now|(?:Jan(?:uary)?|Feb(?:ruary)?|Mar(?:ch)?|Apr(?:il)?|May|Jun(?:e)?|Jul(?:y)?|Aug(?:ust)?|Sep(?:t(?:ember)?)?|Oct(?:ober)?|Nov(?:ember)?|Dec(?:ember)?)\.?\s+\d{4}|\d{1,2}\/\d{4}|\d{4}(?:-\d{2})?))\s*$/i;
+const DATE_TOKEN =
+  "(?:Jan(?:uary)?|Feb(?:ruary)?|Mar(?:ch)?|Apr(?:il)?|May|Jun(?:e)?|Jul(?:y)?|Aug(?:ust)?|Sep(?:t(?:ember)?)?|Oct(?:ober)?|Nov(?:ember)?|Dec(?:ember)?)\\.?\\s+\\d{4}|\\d{1,2}\\/\\d{4}|\\d{4}(?:-\\d{2})?";
+
+const END_TOKEN = `(?:Present|Current|Now|${DATE_TOKEN})`;
+
+const DATE_RANGE_END_RE = new RegExp(
+  `\\s*(${DATE_TOKEN})\\s*[-–—]\\s*(${END_TOKEN})\\s*$`,
+  "i",
+);
+
+const DATE_RANGE_START_RE = new RegExp(
+  `^\\s*(${DATE_TOKEN})\\s*[-–—]\\s*(${END_TOKEN})\\s*(.*)$`,
+  "i",
+);
 
 export type ParsedDateRange = {
   start?: string;
@@ -75,11 +87,29 @@ export type ParsedDateRange = {
 };
 
 export function extractDateRange(line: string): ParsedDateRange {
-  const match = line.match(DATE_RANGE_RE);
-  if (!match) return { remainder: line.trim() };
+  const endMatch = line.match(DATE_RANGE_END_RE);
+  if (endMatch) {
+    const start = normalizeDateToken(endMatch[1]);
+    const endToken = endMatch[2];
+    const endLower = endToken.toLowerCase();
+    const current =
+      endLower === "present" ||
+      endLower === "current" ||
+      endLower === "now";
+    const end = current ? undefined : normalizeDateToken(endToken);
 
-  const start = normalizeDateToken(match[1]);
-  const endToken = match[2];
+    const remainder = line
+      .slice(0, endMatch.index)
+      .trim()
+      .replace(/[|,]\s*$/, "");
+    return { start, end, current, remainder };
+  }
+
+  const startMatch = line.match(DATE_RANGE_START_RE);
+  if (!startMatch) return { remainder: line.trim() };
+
+  const start = normalizeDateToken(startMatch[1]);
+  const endToken = startMatch[2];
   const endLower = endToken.toLowerCase();
   const current =
     endLower === "present" ||
@@ -87,6 +117,6 @@ export function extractDateRange(line: string): ParsedDateRange {
     endLower === "now";
   const end = current ? undefined : normalizeDateToken(endToken);
 
-  const remainder = line.slice(0, match.index).trim().replace(/[|,]\s*$/, "");
+  const remainder = startMatch[3].trim().replace(/^[|,]\s*/, "");
   return { start, end, current, remainder };
 }

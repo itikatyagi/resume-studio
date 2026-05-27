@@ -49,6 +49,36 @@
   page-break-inside: avoid;
 }
 
+.resume-page[data-density="compact"] .resume-section,
+.resume-page[data-density="tight"] .resume-section {
+  margin-bottom: var(--resume-section-gap) !important;
+}
+
+.resume-page[data-density="compact"] .experience-section .space-y-4 > :not([hidden]) ~ :not([hidden]),
+.resume-page[data-density="tight"] .experience-section .space-y-4 > :not([hidden]) ~ :not([hidden]),
+.resume-page[data-density="compact"] .projects-section .space-y-3 > :not([hidden]) ~ :not([hidden]),
+.resume-page[data-density="tight"] .projects-section .space-y-3 > :not([hidden]) ~ :not([hidden]),
+.resume-page[data-density="compact"] .education-section .space-y-3 > :not([hidden]) ~ :not([hidden]),
+.resume-page[data-density="tight"] .education-section .space-y-3 > :not([hidden]) ~ :not([hidden]) {
+  margin-top: var(--resume-entry-gap) !important;
+}
+
+.resume-page[data-density="compact"] ul[class*="space-y-0.5"] > :not([hidden]) ~ :not([hidden]),
+.resume-page[data-density="tight"] ul[class*="space-y-0.5"] > :not([hidden]) ~ :not([hidden]) {
+  margin-top: var(--resume-bullet-gap) !important;
+}
+
+.resume-page[data-density="compact"] .skill-chip-list,
+.resume-page[data-density="tight"] .skill-chip-list {
+  gap: var(--resume-skill-gap) !important;
+}
+
+.resume-page[data-density="compact"] .skill-chip,
+.resume-page[data-density="tight"] .skill-chip {
+  font-size: var(--resume-skill-font-size) !important;
+  padding: var(--resume-skill-padding-y) var(--resume-skill-padding-x) !important;
+}
+
 /* Editor live preview: true letter width, centered — not stretched edge-to-edge */
 @media screen {
   .resume-editor-shell .editor-preview-canvas {

@@ -129,10 +129,11 @@
   border-radius: 0.28rem;
   color: var(--itika-skill-text);
   display: inline-block;
-  font-size: 8pt;
+  font-size: var(--itika-skill-font-size, 8pt);
   font-weight: 500;
   line-height: 1.2;
-  padding: 0.16rem 0.38rem;
+  padding: var(--itika-skill-padding-y, 0.16rem)
+    var(--itika-skill-padding-x, 0.38rem);
 }
 
 .resume-page-itika .itika-bullets {
@@ -159,7 +160,7 @@
 }
 
 .resume-page-itika .itika-bullets li + li {
-  margin-top: 0.3rem;
+  margin-top: var(--itika-bullet-gap, 0.3rem);
 }
 
 .resume-page-itika .itika-exp-role-row {
@@ -197,7 +198,7 @@
 }
 
 .resume-page-itika .resume-section {
-  margin-bottom: 1rem;
+  margin-bottom: var(--itika-section-gap, 1rem);
 }
 
 .resume-editor-shell .resume-page-slot .itika-page-footer {

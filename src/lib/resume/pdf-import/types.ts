@@ -34,6 +34,11 @@ export type DraftSkillGroup = {
   skills: string[];
 };
 
+export type DraftCustomSection = {
+  title: string;
+  content: string;
+};
+
 export type DraftResume = {
   profile: {
     fullName: string;
@@ -50,4 +55,5 @@ export type DraftResume = {
   certifications: { name: string; issuer?: string; date?: string }[];
   languages: { name: string; level?: string }[];
   interests: string[];
+  customSections: DraftCustomSection[];
 };

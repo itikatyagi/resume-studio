@@ -3,9 +3,10 @@
 import { useState } from "react";
 import { AtsScorePanel } from "./AtsScorePanel";
 import { EditorSections } from "./EditorSections";
+import { JobsPanel } from "./JobsPanel";
 import { LayoutPanel } from "./LayoutPanel";
 
-type EditorTab = "content" | "layout" | "ats";
+type EditorTab = "content" | "layout" | "ats" | "jobs";
 
 export function EditorSidebar() {
   const [tab, setTab] = useState<EditorTab>("content");
@@ -46,11 +47,23 @@ export function EditorSidebar() {
         >
           ATS
         </button>
+        <button
+          type="button"
+          onClick={() => setTab("jobs")}
+          className={`flex-1 rounded-md px-3 py-1.5 text-sm font-medium ${
+            tab === "jobs"
+              ? "bg-zinc-900 text-white"
+              : "text-zinc-600 hover:bg-zinc-100"
+          }`}
+        >
+          Jobs
+        </button>
       </div>
       <div className="min-h-0 flex-1 overflow-y-auto overscroll-y-contain p-4">
         {tab === "content" && <EditorSections />}
         {tab === "layout" && <LayoutPanel />}
         {tab === "ats" && <AtsScorePanel />}
+        {tab === "jobs" && <JobsPanel />}
       </div>
     </div>
   );

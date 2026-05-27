@@ -20,12 +20,14 @@ export const ResumeDocument = memo(function ResumeDocument({
   const TemplateComponent = template.component;
   const cssVars = layoutToCssVariables(layout);
   const itikaClass = isItikaLayout(layout) ? "resume-page-itika" : "";
+  const density = layout.density ?? "comfortable";
 
   return (
     <article
       className={`resume-page mx-auto flex min-h-[11in] flex-col bg-white text-black shadow-md print:shadow-none ${template.pageClassName} ${itikaClass}`.trim()}
       style={cssVars as CSSProperties}
       data-theme={layout.themeId}
+      data-density={density}
     >
       <TemplateComponent content={content} layout={layout} />
     </article>

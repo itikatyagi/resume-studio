@@ -51,6 +51,9 @@ export type SkillStyle = (typeof SKILL_STYLES)[number];
 export const COLUMN_ORDERS = ["sidebar-main", "main-sidebar"] as const;
 export type ColumnOrder = (typeof COLUMN_ORDERS)[number];
 
+export const DENSITY_MODES = ["comfortable", "compact", "tight"] as const;
+export type DensityMode = (typeof DENSITY_MODES)[number];
+
 export const layoutColorsSchema = z.object({
   accent: z.string(),
   headerBg: z.string(),
@@ -63,8 +66,8 @@ export const layoutColorsSchema = z.object({
 
 export const typographySchema = z.object({
   fontFamily: z.enum(FONT_FAMILIES),
-  baseSizePt: z.number().min(9).max(12),
-  lineHeight: z.number().min(1.2).max(1.7),
+  baseSizePt: z.number().min(8.5).max(12),
+  lineHeight: z.number().min(1.15).max(1.7),
 });
 
 export const layoutConfigSchema = z.object({
@@ -81,6 +84,7 @@ export const layoutConfigSchema = z.object({
   skillStyle: z.enum(SKILL_STYLES).optional(),
   pagePaddingIn: z.number().min(0).max(1).optional(),
   columnOrder: z.enum(COLUMN_ORDERS).optional(),
+  density: z.enum(DENSITY_MODES).optional(),
 });
 
 export type LayoutColors = z.infer<typeof layoutColorsSchema>;
@@ -98,4 +102,5 @@ export const DEFAULT_STYLE_OPTIONS = {
   headingStyle: "caps-bar" as HeadingStyle,
   skillStyle: "boxes" as SkillStyle,
   pagePaddingIn: 0.5,
+  density: "comfortable" as DensityMode,
 };

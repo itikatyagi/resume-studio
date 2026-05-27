@@ -5,6 +5,8 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import {
+  DENSITY_MODES,
+  type DensityMode,
   FONT_FAMILIES,
   HEADING_STYLES,
   PROFILE_STYLES,
@@ -29,9 +31,52 @@ export function LayoutPanel() {
   const layout = getEffectiveLayout(document);
   const typo = resolveTypography(layout);
   const isItika = isItikaLayout(layout);
+  const density = layout.density ?? "comfortable";
 
   function applyLayout(patch: Partial<LayoutConfig>) {
     updateLayoutConfig(patch);
+  }
+
+  function clamp(value: number, min: number, max: number) {
+    return Math.max(min, Math.min(max, value));
+  }
+
+  function applyDensity(mode: DensityMode) {
+    const presets: Record<
+      DensityMode,
+      { baseSizePt: number; lineHeight: number; pagePaddingIn: number }
+    > = {
+      comfortable: { baseSizePt: 10.5, lineHeight: 1.45, pagePaddingIn: 0.5 },
+      compact: { baseSizePt: 9.4, lineHeight: 1.28, pagePaddingIn: 0.35 },
+      tight: { baseSizePt: 8.7, lineHeight: 1.18, pagePaddingIn: 0.25 },
+    };
+    const preset = presets[mode];
+    applyLayout({
+      density: mode,
+      typography: {
+        ...typo,
+        baseSizePt: preset.baseSizePt,
+        lineHeight: preset.lineHeight,
+      },
+      pagePaddingIn: isItika ? layout.pagePaddingIn : preset.pagePaddingIn,
+    });
+  }
+
+  function tightenOneStep() {
+    const nextBaseSize = clamp(typo.baseSizePt - 0.3, 8.5, 12);
+    const nextLineHeight = clamp(typo.lineHeight - 0.04, 1.15, 1.7);
+    const currentPadding = layout.pagePaddingIn ?? 0.5;
+    applyLayout({
+      density: nextBaseSize <= 9 ? "tight" : "compact",
+      typography: {
+        ...typo,
+        baseSizePt: Number(nextBaseSize.toFixed(1)),
+        lineHeight: Number(nextLineHeight.toFixed(2)),
+      },
+      pagePaddingIn: isItika
+        ? layout.pagePaddingIn
+        : Number(clamp(currentPadding - 0.05, 0.2, 1).toFixed(2)),
+    });
   }
 
   return (
@@ -155,6 +200,36 @@ export function LayoutPanel() {
             Show profile header
           </label>
 
+          <div className="space-y-2 rounded-lg border border-zinc-100 bg-zinc-50/70 p-3">
+            <div className="flex items-center justify-between gap-2">
+              <div>
+                <Label className="text-xs text-zinc-600">Density / page fit</Label>
+                <p className="mt-1 text-xs text-zinc-500">
+                  Reduces font size, line height, section gaps, and margins only.
+                </p>
+              </div>
+              <Button variant="outline" size="sm" onClick={tightenOneStep}>
+                Tighten
+              </Button>
+            </div>
+            <div className="grid grid-cols-3 gap-2">
+              {DENSITY_MODES.map((mode) => (
+                <button
+                  key={mode}
+                  type="button"
+                  onClick={() => applyDensity(mode)}
+                  className={`rounded-md border px-2 py-1.5 text-xs font-medium capitalize transition-colors ${
+                    density === mode
+                      ? "border-zinc-900 bg-zinc-900 text-white"
+                      : "border-zinc-200 bg-white text-zinc-700 hover:bg-zinc-100"
+                  }`}
+                >
+                  {mode}
+                </button>
+              ))}
+            </div>
+          </div>
+
           {layout.structure === "single-column" && (
             <div>
               <Label className="text-xs text-zinc-600">
@@ -208,15 +283,37 @@ export function LayoutPanel() {
             </Label>
             <input
               type="range"
-              min={9}
+              min={8.5}
               max={12}
-              step={0.5}
+              step={0.1}
               value={typo.baseSizePt}
               onChange={(e) =>
                 applyLayout({
                   typography: {
                     ...typo,
                     baseSizePt: Number(e.target.value),
+                  },
+                })
+              }
+              className="mt-1 w-full"
+            />
+          </div>
+
+          <div>
+            <Label className="text-xs text-zinc-600">
+              Line height ({typo.lineHeight})
+            </Label>
+            <input
+              type="range"
+              min={1.15}
+              max={1.7}
+              step={0.01}
+              value={typo.lineHeight}
+              onChange={(e) =>
+                applyLayout({
+                  typography: {
+                    ...typo,
+                    lineHeight: Number(e.target.value),
                   },
                 })
               }

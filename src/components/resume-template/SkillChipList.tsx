@@ -59,7 +59,7 @@ export function SkillChipList({
       {items.map((skill, index) => (
         <span
           key={`${skill}-${index}`}
-          className="skill-chip inline-block rounded border px-2 py-1 text-[0.9em] leading-tight"
+          className="skill-chip inline-flex max-w-full rounded border px-2 py-1 text-[0.82em] leading-tight"
           style={
             layout
               ? {
@@ -78,7 +78,7 @@ export function SkillChipList({
                 }
           }
         >
-          {skill}
+          <span className="whitespace-nowrap">{skill}</span>
         </span>
       ))}
     </div>
